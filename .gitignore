@@ -1,0 +1,7 @@
+*.class
+*.zip
+*.jar
+/*/bin/
+/*/target/
+/target/
+tasks.txt
