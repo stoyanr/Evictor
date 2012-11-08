@@ -9,6 +9,8 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     private final long evictMs;
     private final long evictNs;
     private final long createdNs;
+    private final long expiredNs;
+    private volatile Object data;
 
     public EvictibleEntry(K key, V value, long evictMs) {
         this(key, value, evictMs, System.nanoTime());
@@ -22,6 +24,7 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
         this.evictMs = evictMs;
         this.evictNs = TimeUnit.NANOSECONDS.convert(evictMs, TimeUnit.MILLISECONDS);
         this.createdNs = createdNs;
+        this.expiredNs = this.createdNs + this.evictNs;
     }
 
     @Override
@@ -51,26 +54,27 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     public long getCreatedNs() {
         return createdNs;
     }
-    
-    public boolean shouldEvict() {
-        return (evictNs > 0)? (System.nanoTime() > createdNs + evictNs) : false;
-    }
-/*
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean equals(Object o) {
-        EvictibleEntry<K, V> e = (EvictibleEntry<K, V>) o;
-        return (this.key.equals(e.key) && this.value.equals(e.value));
+
+    public long getExpiredNs() {
+        return expiredNs;
     }
 
-    @Override
-    public int hashCode() {
-        return (this.key.hashCode() ^ this.value.hashCode());
+    public Object getData() {
+        return data;
     }
-*/
+
+    public void setData(Object data) {
+        this.data = data;
+    }
+
+    public boolean shouldEvict() {
+        return (evictNs > 0) ? (System.nanoTime() > expiredNs) : false;
+    }
+
     @Override
     public String toString() {
         return String.format("key: %s, value: %s, evictMs: %d, createdNs: %d", getKey(),
             getValue(), getEvictMs(), getCreatedNs());
     }
+
 }

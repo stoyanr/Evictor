@@ -1,40 +1,27 @@
 package com.stoyanr.concurrent;
 
-import java.lang.ref.WeakReference;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K, V> implements
     ConcurrentMapWithTimedEviction<K, V> {
 
-    private static final int DEFAULT_THREAD_POOL_SIZE = 50;
-
     private final ConcurrentMap<K, EvictibleEntry<K, V>> delegate;
-    private final ConcurrentMap<K, ScheduledFuture<?>> futures;
-    private final ScheduledExecutorService ses;
+    private final EvictionScheduler<K, V> scheduler;
     private transient EntrySet entrySet;
 
-    public ConcurrentMapWithTimedEvictionDecorator() {
-        this(new ConcurrentHashMap<K, EvictibleEntry<K, V>>(), new ScheduledThreadPoolExecutor(
-            DEFAULT_THREAD_POOL_SIZE));
-    }
-
     public ConcurrentMapWithTimedEvictionDecorator(ConcurrentMap<K, EvictibleEntry<K, V>> delegate,
-        ScheduledExecutorService ses) {
+        EvictionScheduler<K, V> scheduler) {
         super();
+        assert (delegate != null);
+        assert (scheduler != null);
         this.delegate = delegate;
-        this.ses = ses;
-        this.futures = new ConcurrentHashMap<>();
+        this.scheduler = scheduler;
     }
-
+    
     @Override
     public int size() {
         return delegate.size();
@@ -81,7 +68,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, value, evictMs);
         EvictibleEntry<K, V> oe = delegate.put(key, e);
         if (oe != null) {
-            removeFuture(oe.getKey(), true);
+            cancelEviction(oe);
         }
         scheduleEviction(e);
         return ((oe == null) || oe.shouldEvict()) ? null : oe.getValue();
@@ -115,7 +102,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         assert (key != null);
         EvictibleEntry<K, V> oe = delegate.remove(key);
         if (oe != null) {
-            removeFuture(oe.getKey(), true);
+            cancelEviction(oe);
         }
         return ((oe == null) || oe.shouldEvict()) ? null : oe.getValue();
     }
@@ -129,7 +116,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
             return false;
         } else {
             boolean removed = delegate.remove(key, oe);
-            removeFuture(oe.getKey(), true);
+            cancelEviction(oe);
             return removed;
         }
     }
@@ -154,7 +141,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, value, evictMs);
         oe = delegate.replace(key, e);
         if (oe != null) {
-            removeFuture(oe.getKey(), true);
+            cancelEviction(oe);
             scheduleEviction(e);
         }
         return (oe != null) ? oe.getValue() : null;
@@ -180,7 +167,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, newValue, evictMs);
         boolean replaced = delegate.replace(key, oe, e);
         if (replaced) {
-            removeFuture(oe.getKey(), true);
+            cancelEviction(oe);
             scheduleEviction(e);
         }
         return replaced;
@@ -188,8 +175,8 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public void clear() {
+        cancelAllEvictions();
         delegate.clear();
-        removeAllFutures(true);
     }
 
     @Override
@@ -205,11 +192,11 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         return entrySet;
     }
 
-    private boolean evictIfExpired(EvictibleEntry<K, V> e) {
+    protected boolean evictIfExpired(EvictibleEntry<K, V> e) {
         return evictIfExpired(e, true);
     }
 
-    private boolean evictIfExpired(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
+    protected boolean evictIfExpired(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
         boolean result = e.shouldEvict();
         if (result) {
             evict(e, cancelPendingEviction);
@@ -217,49 +204,24 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         return result;
     }
 
-    private void evict(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
+    protected void evict(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
         delegate.remove(e.getKey(), e);
-        removeFuture(e.getKey(), cancelPendingEviction);
-    }
-
-    private void scheduleEviction(EvictibleEntry<K, V> e) {
-        if (e.getEvictMs() > 0) {
-            ScheduledFuture<?> future = ses.schedule(new EvictionRunnable<K, V>(this, e),
-                e.getEvictMs(), TimeUnit.MILLISECONDS);
-            futures.put(e.getKey(), future);
+        if (cancelPendingEviction) {
+            cancelEviction(e);
         }
     }
 
-    private void removeFuture(K key, boolean cancelPendingEviction) {
-        ScheduledFuture<?> future = futures.remove(key);
-        if (cancelPendingEviction && future != null && !future.isDone()) {
-            future.cancel(false);
-        }
+    protected void scheduleEviction(EvictibleEntry<K, V> e) {
+        scheduler.scheduleEviction(this, e);
     }
 
-    private void removeAllFutures(boolean cancelPendingEviction) {
-        for (K key : futures.keySet()) {
-            removeFuture(key, cancelPendingEviction);
-        }
+    protected void cancelEviction(EvictibleEntry<K, V> e) {
+        scheduler.cancelEviction(e);
     }
 
-    private static final class EvictionRunnable<K, V> implements Runnable {
-        private final WeakReference<ConcurrentMapWithTimedEvictionDecorator<K, V>> mr;
-        private final WeakReference<EvictibleEntry<K, V>> er;
-
-        public EvictionRunnable(ConcurrentMapWithTimedEvictionDecorator<K, V> m,
-            EvictibleEntry<K, V> e) {
-            er = new WeakReference<EvictibleEntry<K, V>>(e);
-            mr = new WeakReference<ConcurrentMapWithTimedEvictionDecorator<K, V>>(m);
-        }
-
-        public void run() {
-            ConcurrentMapWithTimedEvictionDecorator<K, V> map = mr.get();
-            EvictibleEntry<K, V> e = er.get();
-            System.out.println("EvictionRunnable.run() " + e.toString());
-            if ((map != null) && (e != null)) {
-                map.evictIfExpired(e, false);
-            }
+    protected void cancelAllEvictions() {
+        for (EvictibleEntry<K, V> e : delegate.values()) {
+            cancelEviction(e);
         }
     }
 
