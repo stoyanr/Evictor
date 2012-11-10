@@ -8,21 +8,17 @@ import java.util.Map.Entry;
 class EvictibleEntry<K, V> implements Entry<K, V> {
     private final K key;
     private V value;
-    private final long evictMs;
-    private final long expiredNs;
+    private final boolean evictible;
+    private final long evictionTime;
     private volatile Object data;
 
     public EvictibleEntry(K key, V value, long evictMs) {
-        this(key, value, evictMs, System.nanoTime());
-    }
-
-    public EvictibleEntry(K key, V value, long evictMs, long createdNs) {
         assert (key != null);
         assert (value != null);
         this.key = key;
         this.value = value;
-        this.evictMs = evictMs;
-        this.expiredNs = createdNs + NANOSECONDS.convert(evictMs, MILLISECONDS);
+        this.evictible = (evictMs > 0);
+        this.evictionTime = (evictible) ? now() + NANOSECONDS.convert(evictMs, MILLISECONDS) : 0;
     }
 
     @Override
@@ -45,12 +41,12 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
         }
     }
 
-    public long getEvictMs() {
-        return evictMs;
+    public boolean isEvictible() {
+        return evictible;
     }
 
-    public long getExpiredNs() {
-        return expiredNs;
+    public long getEvictionTime() {
+        return evictionTime;
     }
 
     public Object getData() {
@@ -62,13 +58,16 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     }
 
     public boolean shouldEvict() {
-        return (evictMs > 0) ? (System.nanoTime() > expiredNs) : false;
+        return (evictible) ? (now() > evictionTime) : false;
     }
 
     @Override
     public String toString() {
-        return String.format("[key: %s, value: %s, evictMs: %d]", getKey(), getValue(),
-            getEvictMs());
+        return String.format("[key: %s, value: %s, evictionTime: %d]", key, value, evictionTime);
+    }
+
+    public static long now() {
+        return System.nanoTime();
     }
 
 }

@@ -23,7 +23,11 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
     public static Collection<Object[]> data() {
         // @formatter:off
         return Arrays.asList(new Object[][] { 
-            { IMPL_CHM }, { IMPL_CHMWTE_NULL }, { IMPL_CHMWTE_MULTI_TASK }, { IMPL_CHMWTE_SINGLE_TASK }
+            { IMPL_CHM }, 
+            { IMPL_CHMWTE_NULL }, 
+            { IMPL_CHMWTE_MULTI_TASK }, 
+            { IMPL_CHMWTE_SINGLE_REG_TASK },
+            { IMPL_CHMWTE_SINGLE_DEL_TASK }
         });
         // @formatter:on
     }
@@ -33,11 +37,13 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
     }
 
     @Before
+    @Override
     public void setUp() {
         super.setUp();
     }
 
     @After
+    @Override
     public void tearDown() {
         super.tearDown();
     }

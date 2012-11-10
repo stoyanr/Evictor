@@ -29,7 +29,8 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         // @formatter:off
         return Arrays.asList(new Object[][] { 
             { IMPL_CHMWTE_MULTI_TASK, 1 }, { IMPL_CHMWTE_MULTI_TASK, 50 }, 
-            { IMPL_CHMWTE_SINGLE_TASK, 1 }, { IMPL_CHMWTE_SINGLE_TASK, 50 },  
+            { IMPL_CHMWTE_SINGLE_REG_TASK, 1 }, { IMPL_CHMWTE_SINGLE_REG_TASK, 50 },  
+            { IMPL_CHMWTE_SINGLE_DEL_TASK, 1 }, { IMPL_CHMWTE_SINGLE_DEL_TASK, 50 },  
         });
         // @formatter:on
     }
@@ -41,12 +42,14 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
     }
 
     @Before
+    @Override
     public void setUp() {
         super.setUp();
         map = (ConcurrentMapWithTimedEviction<Integer, String>) super.map;
     }
 
     @After
+    @Override
     public void tearDown() {
         super.tearDown();
     }

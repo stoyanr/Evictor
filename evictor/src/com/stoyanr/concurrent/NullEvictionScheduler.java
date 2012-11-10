@@ -9,7 +9,8 @@ public class NullEvictionScheduler<K, V> implements EvictionScheduler<K, V> {
     }
 
     @Override
-    public void cancelEviction(EvictibleEntry<K, V> e) {
+    public void cancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
+        EvictibleEntry<K, V> e) {
         // Do nothing
     }
 

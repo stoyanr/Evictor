@@ -13,7 +13,7 @@ public class ConcurrentHashMapWithTimedEviction<K, V> extends
 
     public ConcurrentHashMapWithTimedEviction(int initialCapacity, float loadFactor,
         int concurrencyLevel) {
-        this(initialCapacity, loadFactor, concurrencyLevel, new SingleTaskEvictionScheduler<K, V>());
+        this(initialCapacity, loadFactor, concurrencyLevel, new SingleRegularTaskEvictionScheduler<K, V>());
     }
 
     public ConcurrentHashMapWithTimedEviction(int initialCapacity, float loadFactor,
@@ -23,7 +23,7 @@ public class ConcurrentHashMapWithTimedEviction<K, V> extends
     }
 
     public ConcurrentHashMapWithTimedEviction(int initialCapacity, float loadFactor) {
-        this(initialCapacity, loadFactor, new SingleTaskEvictionScheduler<K, V>());
+        this(initialCapacity, loadFactor, new SingleRegularTaskEvictionScheduler<K, V>());
     }
 
     public ConcurrentHashMapWithTimedEviction(int initialCapacity, EvictionScheduler<K, V> scheduler) {
@@ -31,7 +31,7 @@ public class ConcurrentHashMapWithTimedEviction<K, V> extends
     }
 
     public ConcurrentHashMapWithTimedEviction(int initialCapacity) {
-        this(initialCapacity, new SingleTaskEvictionScheduler<K, V>());
+        this(initialCapacity, new SingleRegularTaskEvictionScheduler<K, V>());
     }
 
     public ConcurrentHashMapWithTimedEviction(EvictionScheduler<K, V> scheduler) {
@@ -39,6 +39,6 @@ public class ConcurrentHashMapWithTimedEviction<K, V> extends
     }
 
     public ConcurrentHashMapWithTimedEviction() {
-        this(new SingleTaskEvictionScheduler<K, V>());
+        this(new SingleRegularTaskEvictionScheduler<K, V>());
     }
 }

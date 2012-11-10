@@ -216,7 +216,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     }
 
     protected void cancelEviction(EvictibleEntry<K, V> e) {
-        scheduler.cancelEviction(e);
+        scheduler.cancelEviction(this, e);
     }
 
     protected void cancelAllEvictions() {

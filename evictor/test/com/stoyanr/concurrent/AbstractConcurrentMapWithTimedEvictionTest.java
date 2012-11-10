@@ -27,9 +27,9 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     public static final int IMPL_CHM = 0;
     public static final int IMPL_CHMWTE_NULL = 1;
     public static final int IMPL_CHMWTE_MULTI_TASK = 2;
-    public static final int IMPL_CHMWTE_SINGLE_TASK = 3;
-    public static final int IMPL_CLHM = 4;
-    public static final int IMPL_CLHMWTE_SINGLE_TASK = 5;
+    public static final int IMPL_CHMWTE_SINGLE_REG_TASK = 3;
+    public static final int IMPL_CHMWTE_SINGLE_DEL_TASK = 4;
+    public static final int IMPL_CLHM = 10;
 
     protected final int impl;
     protected final long evictMs;
@@ -70,6 +70,10 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         case IMPL_CHM:
             map = new ConcurrentHashMap<>();
             break;
+        case IMPL_CLHM:
+            map = new ConcurrentLinkedHashMap.Builder<Integer, String>().maximumWeightedCapacity(
+                numThreads * numIterations).build();
+            break;
         case IMPL_CHMWTE_NULL:
             scheduler = new NullEvictionScheduler<>();
             map = new ConcurrentHashMapWithTimedEviction<>(scheduler);
@@ -78,19 +82,13 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
             scheduler = new MultiTaskEvictionScheduler<>(evictionExecutor);
             map = new ConcurrentHashMapWithTimedEviction<>(scheduler);
             break;
-        case IMPL_CHMWTE_SINGLE_TASK:
-            scheduler = new SingleTaskEvictionScheduler<>(evictionExecutor);
+        case IMPL_CHMWTE_SINGLE_REG_TASK:
+            scheduler = new SingleRegularTaskEvictionScheduler<>(evictionExecutor);
             map = new ConcurrentHashMapWithTimedEviction<>(scheduler);
             break;
-        case IMPL_CLHM:
-            map = new ConcurrentLinkedHashMap.Builder<Integer, String>().maximumWeightedCapacity(
-                numThreads * numIterations).build();
-            break;
-        case IMPL_CLHMWTE_SINGLE_TASK:
-            scheduler = new SingleTaskEvictionScheduler<>(evictionExecutor);
-            map = new ConcurrentMapWithTimedEvictionDecorator<Integer, String>(
-                new ConcurrentLinkedHashMap.Builder<Integer, EvictibleEntry<Integer, String>>()
-                    .maximumWeightedCapacity(numThreads * numIterations).build(), scheduler);
+        case IMPL_CHMWTE_SINGLE_DEL_TASK:
+            scheduler = new SingleDelayedTaskEvictionScheduler<>(evictionExecutor);
+            map = new ConcurrentHashMapWithTimedEviction<>(scheduler);
             break;
         }
     }

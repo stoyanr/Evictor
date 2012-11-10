@@ -25,15 +25,16 @@ public class MultiTaskEvictionScheduler<K, V> implements EvictionScheduler<K, V>
     @Override
     public void scheduleEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
-        if (e.getEvictMs() > 0) {
+        if (e.isEvictible()) {
             ScheduledFuture<?> future = ses.schedule(new EvictionRunnable<K, V>(map, e),
-                Math.max(e.getExpiredNs() - System.nanoTime(), 0), TimeUnit.NANOSECONDS);
+                Math.max(e.getEvictionTime() - System.nanoTime(), 0), TimeUnit.NANOSECONDS);
             e.setData(future);
         }
     }
 
     @Override
-    public void cancelEviction(EvictibleEntry<K, V> e) {
+    public void cancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
+        EvictibleEntry<K, V> e) {
         ScheduledFuture<?> future = (ScheduledFuture<?>) e.getData();
         if (future != null && !future.isDone()) {
             future.cancel(false);
