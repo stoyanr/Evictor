@@ -1,14 +1,14 @@
 package com.stoyanr.concurrent;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
 
 class EvictibleEntry<K, V> implements Entry<K, V> {
     private final K key;
     private V value;
     private final long evictMs;
-    private final long evictNs;
-    private final long createdNs;
     private final long expiredNs;
     private volatile Object data;
 
@@ -22,9 +22,7 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
         this.key = key;
         this.value = value;
         this.evictMs = evictMs;
-        this.evictNs = TimeUnit.NANOSECONDS.convert(evictMs, TimeUnit.MILLISECONDS);
-        this.createdNs = createdNs;
-        this.expiredNs = this.createdNs + this.evictNs;
+        this.expiredNs = createdNs + NANOSECONDS.convert(evictMs, MILLISECONDS);
     }
 
     @Override
@@ -51,10 +49,6 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
         return evictMs;
     }
 
-    public long getCreatedNs() {
-        return createdNs;
-    }
-
     public long getExpiredNs() {
         return expiredNs;
     }
@@ -68,13 +62,13 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     }
 
     public boolean shouldEvict() {
-        return (evictNs > 0) ? (System.nanoTime() > expiredNs) : false;
+        return (evictMs > 0) ? (System.nanoTime() > expiredNs) : false;
     }
 
     @Override
     public String toString() {
-        return String.format("key: %s, value: %s, evictMs: %d, createdNs: %d", getKey(),
-            getValue(), getEvictMs(), getCreatedNs());
+        return String.format("[key: %s, value: %s, evictMs: %d]", getKey(), getValue(),
+            getEvictMs());
     }
 
 }

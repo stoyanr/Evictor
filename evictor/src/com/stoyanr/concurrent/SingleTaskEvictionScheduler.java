@@ -3,6 +3,7 @@ package com.stoyanr.concurrent;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -11,7 +12,7 @@ public class SingleTaskEvictionScheduler<K, V> implements EvictionScheduler<K, V
 
     public static final int DEFAULT_THREAD_POOL_SIZE = 1;
 
-    private final ScheduledThreadPoolExecutor ses;
+    private final ScheduledExecutorService ses;
     private final ConcurrentNavigableMap<Long, EvictibleEntry<K, V>> queue;
     private ScheduledFuture<?> future = null;
 

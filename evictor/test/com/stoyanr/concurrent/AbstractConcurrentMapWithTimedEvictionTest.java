@@ -12,25 +12,34 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 
-public class AbstractConcurrentMapWithTimedEvictionTest {
+public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
     public static final String VALUE = "value";
+    public static final String VALUE2 = "valuex";
     public static final long TIMEOUT_MS = 60 * 60 * 1000;
     public static final int MAX_EVICTION_THREADS = 1;
+    public static final int MAX_MAP_SIZE = 10000;
 
     public static final int RESULT_PASSED = 0;
     public static final int RESULT_INTERRUPTED = -1;
     public static final int RESULT_ASSERTION_FAILED = -2;
 
-    protected ScheduledThreadPoolExecutor evictionExecutor;
-    protected ThreadPoolExecutor testExecutor;
+    public static final int IMPL_CHM = 0;
+    public static final int IMPL_CHMWTE_NULL = 1;
+    public static final int IMPL_CHMWTE_MULTI_TASK = 2;
+    public static final int IMPL_CHMWTE_SINGLE_TASK = 3;
+    public static final int IMPL_CLHM = 4;
+    public static final int IMPL_CLHMWTE_SINGLE_TASK = 5;
 
     protected final int impl;
     protected final long evictMs;
     protected final int numThreads;
     protected final int numIterations;
 
+    protected ScheduledThreadPoolExecutor evictionExecutor;
+    protected ThreadPoolExecutor testExecutor;
     protected ConcurrentMap<Integer, String> map;
+    protected EvictionScheduler<Integer, String> scheduler;
 
     public AbstractConcurrentMapWithTimedEvictionTest(int impl, long evictMs, int numThreads,
         int numIterations) {
@@ -49,39 +58,51 @@ public class AbstractConcurrentMapWithTimedEvictionTest {
     }
 
     public void tearDown() {
-        evictionExecutor.getQueue().clear();
+        evictionExecutor.shutdownNow();
     }
+
+    public abstract void setUpIteration();
+
+    public abstract void tearDownIteration();
 
     protected void createMap() {
         switch (impl) {
-        case 0:
+        case IMPL_CHM:
             map = new ConcurrentHashMap<>();
             break;
-        case 1:
-            map = new ConcurrentHashMapWithTimedEviction<>(
-                new MultiTaskEvictionScheduler<Integer, String>(evictionExecutor));
+        case IMPL_CHMWTE_NULL:
+            scheduler = new NullEvictionScheduler<>();
+            map = new ConcurrentHashMapWithTimedEviction<>(scheduler);
             break;
-        case 2:
-            map = new ConcurrentHashMapWithTimedEviction<>(
-                new SingleTaskEvictionScheduler<Integer, String>(evictionExecutor));
+        case IMPL_CHMWTE_MULTI_TASK:
+            scheduler = new MultiTaskEvictionScheduler<>(evictionExecutor);
+            map = new ConcurrentHashMapWithTimedEviction<>(scheduler);
             break;
-        case 3:
-            long capacity = numThreads * numIterations;
+        case IMPL_CHMWTE_SINGLE_TASK:
+            scheduler = new SingleTaskEvictionScheduler<>(evictionExecutor);
+            map = new ConcurrentHashMapWithTimedEviction<>(scheduler);
+            break;
+        case IMPL_CLHM:
+            map = new ConcurrentLinkedHashMap.Builder<Integer, String>().maximumWeightedCapacity(
+                numThreads * numIterations).build();
+            break;
+        case IMPL_CLHMWTE_SINGLE_TASK:
+            scheduler = new SingleTaskEvictionScheduler<>(evictionExecutor);
             map = new ConcurrentMapWithTimedEvictionDecorator<Integer, String>(
                 new ConcurrentLinkedHashMap.Builder<Integer, EvictibleEntry<Integer, String>>()
-                    .maximumWeightedCapacity(capacity).build(),
-                new SingleTaskEvictionScheduler<Integer, String>(evictionExecutor));
+                    .maximumWeightedCapacity(numThreads * numIterations).build(), scheduler);
             break;
         }
     }
 
     protected interface TestTask {
-        void test(int id) throws InterruptedException;
+        public void test(int id) throws InterruptedException;
     }
 
     protected void run(String name, TestTask task) throws InterruptedException {
-        System.out.println("[" + evictMs + " ms, " + numThreads + " threads] " + name);
-        System.out.println("Cache operations: " + numThreads * numIterations);
+        System.out.println(map.getClass().getSimpleName() + "("
+            + ((scheduler != null) ? scheduler.getClass().getSimpleName() : "") + "), " + evictMs
+            + " ms, " + numThreads + " threads, " + numIterations + " iterations: " + name);
         TestRunnable[] runnables = new TestRunnable[numThreads];
         for (int i = 0; i < numThreads; i++) {
             runnables[i] = new TestRunnable(i, task);
@@ -100,12 +121,6 @@ public class AbstractConcurrentMapWithTimedEvictionTest {
         }
         System.out.println("Average time: "
             + ((double) sum / (numThreads * numIterations * 1000.0)) + " us");
-    }
-
-    private void clearEvictionExecutorQueue() {
-        if (numThreads == 1) {
-            evictionExecutor.getQueue().clear();
-        }
     }
 
     private final class TestRunnable implements Runnable {
@@ -137,8 +152,8 @@ public class AbstractConcurrentMapWithTimedEvictionTest {
         @Override
         public void run() {
             for (int i = 0; i < numIterations; i++) {
-                clearEvictionExecutorQueue();
-                int idx = id * 1000 + i;
+                setUpIteration();
+                int idx = getIterationId(id, i);
                 try {
                     long startNs = System.nanoTime();
                     task.test(idx);
@@ -153,7 +168,24 @@ public class AbstractConcurrentMapWithTimedEvictionTest {
                     System.out.println("Assertion failed: " + idx);
                     break;
                 }
+                tearDownIteration();
             }
         }
+    }
+
+    protected int getIterationId(int id, int i) {
+        return (id * numIterations + i) % MAX_MAP_SIZE;
+    }
+
+    protected static String getValue(int id) {
+        return VALUE + id;
+    }
+
+    protected static String getValue2(int id) {
+        return VALUE2 + id;
+    }
+
+    protected static int getId2(int id) {
+        return Integer.MAX_VALUE - id;
     }
 }

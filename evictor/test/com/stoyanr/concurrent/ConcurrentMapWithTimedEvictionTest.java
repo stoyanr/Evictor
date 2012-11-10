@@ -19,17 +19,17 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(value = Parameterized.class)
-public class ConcurrentMapWithTimedEvictionTest extends
-    AbstractConcurrentMapWithTimedEvictionTest {
+public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWithTimedEvictionTest {
 
-    private static final int NUM_ITERATIONS = 20;
-    private static final int EVICT_MS = 4;
+    private static final int NUM_ITERATIONS = 10;
+    private static final int EVICT_MS = 5;
 
     @Parameters
     public static Collection<Object[]> data() {
         // @formatter:off
         return Arrays.asList(new Object[][] { 
-            { 1, 1 }, { 1, 50 }, { 2, 1 }, { 2, 50 },  
+            { IMPL_CHMWTE_MULTI_TASK, 1 }, { IMPL_CHMWTE_MULTI_TASK, 50 }, 
+            { IMPL_CHMWTE_SINGLE_TASK, 1 }, { IMPL_CHMWTE_SINGLE_TASK, 50 },  
         });
         // @formatter:on
     }
@@ -51,11 +51,20 @@ public class ConcurrentMapWithTimedEvictionTest extends
         super.tearDown();
     }
 
+    @Override
+    public void setUpIteration() {
+        clearEvictionExecutorQueue();
+    }
+
+    @Override
+    public void tearDownIteration() {
+    }
+
     @Test
     public void testSize() throws Exception {
         assertEquals(0, map.size());
         long t0 = System.nanoTime();
-        assertNull(map.put(0, VALUE + 0, evictMs));
+        assertNull(map.put(0, getValue(0), evictMs));
         assertTrue((map.size() == 1) || tooLate(t0));
         Thread.sleep(evictMs + 1);
         assertNull(map.get(0));
@@ -69,7 +78,7 @@ public class ConcurrentMapWithTimedEvictionTest extends
             public void test(int id) throws InterruptedException {
                 assertFalse(map.containsKey(id));
                 long t0 = System.nanoTime();
-                assertNull(map.put(id, VALUE + id, evictMs));
+                assertNull(map.put(id, getValue(id), evictMs));
                 assertTrue(map.containsKey(id) || tooLate(t0));
                 Thread.sleep(evictMs + 1);
                 assertFalse(map.containsKey(id));
@@ -82,7 +91,7 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testContainsValue", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
+                String value = getValue(id);
                 assertFalse(map.containsValue(value));
                 long t0 = System.nanoTime();
                 assertNull(map.put(id, value, evictMs));
@@ -98,8 +107,8 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testContainsValue2", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
-                int id2 = id + 100;
+                String value = getValue(id);
+                int id2 = getId2(id);
                 long t0 = System.nanoTime();
                 assertNull(map.put(id, value, evictMs));
                 assertTrue(map.containsValue(value) || tooLate(t0));
@@ -121,7 +130,7 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testGet", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
+                String value = getValue(id);
                 assertNull(map.get(id));
                 long t0 = System.nanoTime();
                 assertNull(map.put(id, value, evictMs));
@@ -137,8 +146,8 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testPut", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
-                String value2 = VALUE + id + "x";
+                String value = getValue(id);
+                String value2 = getValue2(id);
                 long t0 = System.nanoTime();
                 assertNull(map.put(id, value, evictMs));
                 assertQueueSize(1);
@@ -158,8 +167,8 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testPutIfAbsent", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
-                String value2 = VALUE + id + "x";
+                String value = getValue(id);
+                String value2 = getValue2(id);
                 long t0 = System.nanoTime();
                 assertNull(map.putIfAbsent(id, value, evictMs));
                 assertQueueSize(1);
@@ -178,7 +187,7 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testRemove", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
+                String value = getValue(id);
                 assertNull(map.remove(id));
                 assertNull(map.put(id, value));
                 assertEquals(value, map.remove(id));
@@ -192,7 +201,7 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testRemove2", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
+                String value = getValue(id);
                 assertNull(map.remove(id));
                 assertNull(map.put(id, value, evictMs));
                 assertQueueSize(1);
@@ -209,7 +218,7 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testRemove3", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
+                String value = getValue(id);
                 assertNull(map.remove(id));
                 long t0 = System.nanoTime();
                 assertNull(map.put(id, value, evictMs));
@@ -226,8 +235,8 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testRemove4", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
-                String value2 = VALUE + id + "x";
+                String value = getValue(id);
+                String value2 = getValue2(id);
                 assertFalse(map.remove(id, value));
                 assertNull(map.put(id, value));
                 assertFalse(map.remove(id, value2));
@@ -243,8 +252,8 @@ public class ConcurrentMapWithTimedEvictionTest extends
         run("testRemove5", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                String value = VALUE + id;
-                String value2 = VALUE + id + "x";
+                String value = getValue(id);
+                String value2 = getValue2(id);
                 assertFalse(map.remove(id, value));
                 assertNull(map.put(id, value, evictMs));
                 assertQueueSize(1);
@@ -261,12 +270,18 @@ public class ConcurrentMapWithTimedEvictionTest extends
         map.clear();
         assertTrue(map.isEmpty());
         long t0 = System.nanoTime();
-        assertNull(map.put(0, VALUE + 0, evictMs));
+        assertNull(map.put(0, getValue(0), evictMs));
         assertQueueSize(1);
         assertTrue(!map.isEmpty() || tooLate(t0));
         map.clear();
         assertAllDone();
         assertTrue(map.isEmpty());
+    }
+
+    private void clearEvictionExecutorQueue() {
+        if (numThreads == 1) {
+            evictionExecutor.getQueue().clear();
+        }
     }
 
     private boolean tooLate(long t) {
@@ -292,5 +307,5 @@ public class ConcurrentMapWithTimedEvictionTest extends
             }
         }
     }
-
+    
 }

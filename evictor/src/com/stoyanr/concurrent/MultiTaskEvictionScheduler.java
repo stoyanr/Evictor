@@ -27,7 +27,7 @@ public class MultiTaskEvictionScheduler<K, V> implements EvictionScheduler<K, V>
         EvictibleEntry<K, V> e) {
         if (e.getEvictMs() > 0) {
             ScheduledFuture<?> future = ses.schedule(new EvictionRunnable<K, V>(map, e),
-                e.getEvictMs(), TimeUnit.MILLISECONDS);
+                Math.max(e.getExpiredNs() - System.nanoTime(), 0), TimeUnit.NANOSECONDS);
             e.setData(future);
         }
     }
