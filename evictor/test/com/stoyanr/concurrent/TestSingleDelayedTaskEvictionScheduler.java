@@ -75,7 +75,7 @@ public class TestSingleDelayedTaskEvictionScheduler<K, V> extends
 
     private boolean isScheduledOk() {
         long diff = now() + future.getDelay(NANOSECONDS) - queue.firstKey();
-        boolean ok = (diff < EPSILON);
+        boolean ok = (Math.abs(diff) < EPSILON);
         if (!ok) {
             System.out.println(String.format("Diff: %d", diff));
         }

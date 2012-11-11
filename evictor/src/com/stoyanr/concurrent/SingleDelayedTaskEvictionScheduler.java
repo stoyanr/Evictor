@@ -19,18 +19,26 @@ public class SingleDelayedTaskEvictionScheduler<K, V> extends
     @Override
     protected void onScheduleEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
-        schedule(map, e.getEvictionTime());
+        if (!queue.isEmpty()) {
+            scheduleTask(map, e.getEvictionTime());
+        }
     }
 
     @Override
     protected void onCancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
-        cancel();
+        if (queue.isEmpty()) {
+            cancelTask();
+        } else {
+            scheduleTaskOnCancel(map, e.getEvictionTime());
+        }
     }
 
     @Override
     protected void onCancelAllEvictions(ConcurrentMapWithTimedEvictionDecorator<K, V> map) {
-        cancel();
+        if (queue.isEmpty()) {
+            cancelTask();
+        }
     }
 
     @Override
@@ -42,18 +50,6 @@ public class SingleDelayedTaskEvictionScheduler<K, V> extends
         }
     }
 
-    private void schedule(ConcurrentMapWithTimedEvictionDecorator<K, V> map, long time) {
-        if (!queue.isEmpty()) {
-            scheduleTask(map, time);
-        }
-    }
-
-    private void cancel() {
-        if (queue.isEmpty()) {
-            cancelTask();
-        }
-    }
-
     private synchronized void scheduleTask(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         long time) {
         if (future == null) {
@@ -61,6 +57,17 @@ public class SingleDelayedTaskEvictionScheduler<K, V> extends
         } else if (!queue.isEmpty() && (queue.firstKey() == time)) {
             future.cancel(false);
             future = scheduleAt(map, time);
+        }
+    }
+
+    private synchronized void scheduleTaskOnCancel(
+        ConcurrentMapWithTimedEvictionDecorator<K, V> map, long time) {
+        if (!queue.isEmpty()) {
+            long next = queue.firstKey();
+            if (next > time) {
+                future.cancel(false);
+                future = scheduleAt(map, next);
+            }
         }
     }
 
