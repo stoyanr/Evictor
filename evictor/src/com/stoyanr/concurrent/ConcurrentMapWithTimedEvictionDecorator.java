@@ -190,11 +190,11 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         return entrySet;
     }
 
-    protected boolean evictIfExpired(EvictibleEntry<K, V> e) {
+    private boolean evictIfExpired(EvictibleEntry<K, V> e) {
         return evictIfExpired(e, true);
     }
 
-    protected boolean evictIfExpired(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
+    private boolean evictIfExpired(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
         boolean result = e.shouldEvict();
         if (result) {
             evict(e, cancelPendingEviction);
@@ -202,28 +202,28 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         return result;
     }
 
-    protected void evict(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
+    void evict(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
         delegate.remove(e.getKey(), e);
         if (cancelPendingEviction) {
             cancelEviction(e);
         }
     }
 
-    protected void scheduleEviction(EvictibleEntry<K, V> e) {
+    private void scheduleEviction(EvictibleEntry<K, V> e) {
         scheduler.scheduleEviction(this, e);
     }
 
-    protected void cancelEviction(EvictibleEntry<K, V> e) {
+    private void cancelEviction(EvictibleEntry<K, V> e) {
         scheduler.cancelEviction(this, e);
     }
 
-    protected void cancelAllEvictions() {
+    private void cancelAllEvictions() {
         for (EvictibleEntry<K, V> e : delegate.values()) {
             cancelEviction(e);
         }
     }
 
-    final class EntrySet extends AbstractSet<Entry<K, V>> {
+    private final class EntrySet extends AbstractSet<Entry<K, V>> {
 
         @Override
         public Iterator<Entry<K, V>> iterator() {
@@ -270,7 +270,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         }
     }
 
-    final class EntryIterator implements Iterator<Entry<K, V>> {
+    private final class EntryIterator implements Iterator<Entry<K, V>> {
 
         private final Iterator<Entry<K, EvictibleEntry<K, V>>> iterator = delegate.entrySet()
             .iterator();

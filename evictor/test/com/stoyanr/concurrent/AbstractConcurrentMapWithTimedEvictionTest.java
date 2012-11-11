@@ -18,7 +18,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     public static final String VALUE2 = "valuex";
     public static final long TIMEOUT_MS = 60 * 60 * 1000;
     public static final int MAX_EVICTION_THREADS = 1;
-    public static final int MAX_MAP_SIZE = 10000;
+    public static final int MAX_MAP_SIZE = 1000000;
 
     public static final int RESULT_PASSED = 0;
     public static final int RESULT_INTERRUPTED = -1;
@@ -68,7 +68,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
     public abstract void tearDownIteration();
 
-    protected void createScheduler() {
+    private void createScheduler() {
         switch (impl) {
         case IMPL_CHMWTE_NULL:
             scheduler = new NullEvictionScheduler<>();
@@ -93,7 +93,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         }
     }
 
-    protected void createMap() {
+    private void createMap() {
         switch (impl) {
         case IMPL_CHM:
             map = new ConcurrentHashMap<>();
@@ -118,43 +118,80 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     }
 
     protected void run(String name, TestTask task) throws InterruptedException {
+        printHeader(name);
+        TestRunnable[] runnables = createRunnables(task);
+        executeRunnables(runnables);
+        checkResults(runnables);
+        printAverageTime(calcAverageTime(runnables));
+        printStatistics();
+    }
+
+    private TestRunnable[] createRunnables(TestTask task) {
+        TestRunnable[] runnables = new TestRunnable[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            runnables[i] = new TestRunnable(i, task);
+        }
+        return runnables;
+    }
+
+    private void executeRunnables(TestRunnable[] runnables) throws InterruptedException {
+        for (int i = 0; i < numThreads; i++) {
+            testExecutor.submit(runnables[i]);
+        }
+        testExecutor.shutdown();
+        assertTrue(testExecutor.awaitTermination(TIMEOUT_MS, MILLISECONDS));
+    }
+
+    private void checkResults(TestRunnable[] runnables) throws AssertionError {
+        for (TestRunnable r : runnables) {
+            if (r.getError() != null) {
+                throw r.getError();
+            }
+            assertTrue(r.getResult() == RESULT_PASSED);
+        }
+    }
+
+    private double calcAverageTime(TestRunnable[] runnables) {
+        long sum = 0;
+        for (TestRunnable r : runnables) {
+            sum += r.getDurationNs();
+        }
+        return ((double) sum) / (numThreads * numIterations * 1000.0);
+    }
+
+    private void printHeader(String name) {
         // @formatter:off
         System.out.printf("%s(%s), %d ms, %d threads, %d iterations: %s\n", 
             map.getClass().getSimpleName(), 
             ((scheduler != null) ? scheduler.getClass().getSimpleName() : ""),
             evictMs, numThreads, numIterations, name);
         // @formatter:on
-        TestRunnable[] runnables = new TestRunnable[numThreads];
-        for (int i = 0; i < numThreads; i++) {
-            runnables[i] = new TestRunnable(i, task);
-            testExecutor.submit(runnables[i]);
-        }
-        testExecutor.shutdown();
-        boolean terminated = testExecutor.awaitTermination(TIMEOUT_MS, MILLISECONDS);
-        assertTrue(terminated);
-        long sum = 0;
-        for (TestRunnable r : runnables) {
-            if (r.getError() != null) {
-                throw r.getError();
-            }
-            assertTrue(r.getResult() == RESULT_PASSED);
-            sum += r.getDurationNs();
-        }
-        System.out.printf("Average time: %f us\n",
-            ((double) sum / (numThreads * numIterations * 1000.0)));
+    }
+
+    private void printAverageTime(double avgTime) {
+        System.out.printf("Average time: %f us\n", avgTime);
+    }
+
+    private void printStatistics() {
         if (scheduler instanceof TestSingleDelayedTaskEvictionScheduler) {
-            TestSingleDelayedTaskEvictionScheduler<Integer, String> ts = (TestSingleDelayedTaskEvictionScheduler<Integer, String>) scheduler;
-            // @formatter:off
-            System.out.printf("Scheduler: onScheduleEviction: %d, onCancelEviction: %d, onCancelAllEvictions: %d, onEvictEntries: %d\n", 
-                ts.onScheduleEvictionCalls, ts.onCancelEvictionCalls, ts.onCancelAllEvictionCalls, ts.onEvictEntriesCalls);
-            // @formatter:on
+            printStatistics((TestSingleDelayedTaskEvictionScheduler<Integer, String>) scheduler);
         } else if (scheduler instanceof TestSingleRegularTaskEvictionScheduler) {
-            TestSingleRegularTaskEvictionScheduler<Integer, String> ts = (TestSingleRegularTaskEvictionScheduler<Integer, String>) scheduler;
-            // @formatter:off
-            System.out.printf("Scheduler: onScheduleEviction: %d, onCancelEviction: %d, onCancelAllEvictions: %d, onEvictEntries: %d\n", 
-                ts.onScheduleEvictionCalls, ts.onCancelEvictionCalls, ts.onCancelAllEvictionCalls, ts.onEvictEntriesCalls);
-            // @formatter:on
+            printStatistics((TestSingleRegularTaskEvictionScheduler<Integer, String>) scheduler);
         }
+    }
+
+    private void printStatistics(TestSingleRegularTaskEvictionScheduler<Integer, String> ts) {
+        // @formatter:off
+        System.out.printf("Scheduler: onScheduleEviction: %d, onCancelEviction: %d, onCancelAllEvictions: %d, onEvictEntries: %d\n", 
+            ts.onScheduleEvictionCalls, ts.onCancelEvictionCalls, ts.onCancelAllEvictionCalls, ts.onEvictEntriesCalls);
+        // @formatter:on
+    }
+
+    private void printStatistics(TestSingleDelayedTaskEvictionScheduler<Integer, String> ts) {
+        // @formatter:off
+        System.out.printf("Scheduler: onScheduleEviction: %d, onCancelEviction: %d, onCancelAllEvictions: %d, onEvictEntries: %d\n", 
+            ts.onScheduleEvictionCalls, ts.onCancelEvictionCalls, ts.onCancelAllEvictionCalls, ts.onEvictEntriesCalls);
+        // @formatter:on
     }
 
     private final class TestRunnable implements Runnable {
