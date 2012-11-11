@@ -3,12 +3,9 @@ package com.stoyanr.concurrent;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 public class SingleRegularTaskEvictionScheduler<K, V> extends
     AbstractSingleTaskEvictionScheduler<K, V> {
-
-    private ScheduledFuture<?> future = null;
 
     public SingleRegularTaskEvictionScheduler() {
         super();
@@ -21,21 +18,32 @@ public class SingleRegularTaskEvictionScheduler<K, V> extends
     @Override
     protected void onScheduleEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
-        if (!queue.isEmpty()) {
-            scheduleTask(map);
-        }
+        schedule(map);
     }
 
     @Override
     protected void onCancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
-        if (queue.isEmpty()) {
-            cancelTask();
-        }
+        cancel();
+    }
+
+    @Override
+    protected void onCancelAllEvictions(ConcurrentMapWithTimedEvictionDecorator<K, V> map) {
+        cancel();
     }
 
     @Override
     protected void onEvictEntries(ConcurrentMapWithTimedEvictionDecorator<K, V> map) {
+        cancel();
+    }
+
+    private void schedule(ConcurrentMapWithTimedEvictionDecorator<K, V> map) {
+        if (!queue.isEmpty()) {
+            scheduleTask(map);
+        }
+    }
+
+    private void cancel() {
         if (queue.isEmpty()) {
             cancelTask();
         }

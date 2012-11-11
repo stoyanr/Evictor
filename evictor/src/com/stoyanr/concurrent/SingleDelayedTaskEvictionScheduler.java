@@ -8,8 +8,6 @@ import java.util.concurrent.ScheduledFuture;
 public class SingleDelayedTaskEvictionScheduler<K, V> extends
     AbstractSingleTaskEvictionScheduler<K, V> {
 
-    private ScheduledFuture<?> future = null;
-
     public SingleDelayedTaskEvictionScheduler() {
         super();
     }
@@ -21,17 +19,18 @@ public class SingleDelayedTaskEvictionScheduler<K, V> extends
     @Override
     protected void onScheduleEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
-        if (!queue.isEmpty()) {
-            scheduleTask(map, e.getEvictionTime());
-        }
+        schedule(map, e.getEvictionTime());
     }
 
     @Override
     protected void onCancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
-        if (queue.isEmpty()) {
-            cancelTask();
-        }
+        cancel();
+    }
+
+    @Override
+    protected void onCancelAllEvictions(ConcurrentMapWithTimedEvictionDecorator<K, V> map) {
+        cancel();
     }
 
     @Override
@@ -40,6 +39,18 @@ public class SingleDelayedTaskEvictionScheduler<K, V> extends
             future = scheduleAt(map, queue.firstKey());
         } else {
             future = null;
+        }
+    }
+
+    private void schedule(ConcurrentMapWithTimedEvictionDecorator<K, V> map, long time) {
+        if (!queue.isEmpty()) {
+            scheduleTask(map, time);
+        }
+    }
+
+    private void cancel() {
+        if (queue.isEmpty()) {
+            cancelTask();
         }
     }
 
@@ -65,4 +76,5 @@ public class SingleDelayedTaskEvictionScheduler<K, V> extends
         return ses.schedule(new EvictionRunnable<K, V>(map, this), Math.max(time - now(), 0),
             NANOSECONDS);
     }
+
 }

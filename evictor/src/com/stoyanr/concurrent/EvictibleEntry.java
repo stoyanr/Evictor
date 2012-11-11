@@ -32,13 +32,11 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     }
 
     @Override
-    public V setValue(V value) {
+    public synchronized V setValue(V value) {
         assert (value != null);
-        synchronized (this.value) {
-            V oldValue = this.value;
-            this.value = value;
-            return oldValue;
-        }
+        V oldValue = this.value;
+        this.value = value;
+        return oldValue;
     }
 
     public boolean isEvictible() {

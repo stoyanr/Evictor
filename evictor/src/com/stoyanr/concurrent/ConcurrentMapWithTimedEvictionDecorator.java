@@ -11,7 +11,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     private final ConcurrentMap<K, EvictibleEntry<K, V>> delegate;
     private final EvictionScheduler<K, V> scheduler;
-    private transient EntrySet entrySet;
+    private final transient EntrySet entrySet;
 
     public ConcurrentMapWithTimedEvictionDecorator(ConcurrentMap<K, EvictibleEntry<K, V>> delegate,
         EvictionScheduler<K, V> scheduler) {
@@ -20,8 +20,9 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         assert (scheduler != null);
         this.delegate = delegate;
         this.scheduler = scheduler;
+        this.entrySet = new EntrySet();
     }
-    
+
     @Override
     public int size() {
         return delegate.size();
@@ -186,9 +187,6 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        if (entrySet == null) {
-            entrySet = new EntrySet();
-        }
         return entrySet;
     }
 
@@ -227,6 +225,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     final class EntrySet extends AbstractSet<Entry<K, V>> {
 
+        @Override
         public Iterator<Entry<K, V>> iterator() {
             return new EntryIterator();
         }
@@ -275,10 +274,12 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
         private final Iterator<Entry<K, EvictibleEntry<K, V>>> iterator = delegate.entrySet()
             .iterator();
+        private volatile Entry<K, V> ce;
 
         @Override
         public Entry<K, V> next() {
-            return iterator.next().getValue();
+            ce = iterator.next().getValue();
+            return ce;
         }
 
         @Override
@@ -287,8 +288,13 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         }
 
         @Override
-        public void remove() {
-            iterator.remove();
+        public synchronized void remove() {
+            if (ce != null) {
+                ConcurrentMapWithTimedEvictionDecorator.this.remove(ce.getKey(), ce.getValue());
+                ce = null;
+            } else {
+                throw new IllegalStateException();
+            }
         }
     }
 

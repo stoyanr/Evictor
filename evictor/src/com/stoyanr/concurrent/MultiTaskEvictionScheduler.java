@@ -1,6 +1,7 @@
 package com.stoyanr.concurrent;
 
 import java.lang.ref.WeakReference;
+import java.util.Map.Entry;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -25,6 +26,8 @@ public class MultiTaskEvictionScheduler<K, V> implements EvictionScheduler<K, V>
     @Override
     public void scheduleEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
+        assert (map != null);
+        assert (e != null);
         if (e.isEvictible()) {
             ScheduledFuture<?> future = ses.schedule(new EvictionRunnable<K, V>(map, e),
                 Math.max(e.getEvictionTime() - System.nanoTime(), 0), TimeUnit.NANOSECONDS);
@@ -35,9 +38,19 @@ public class MultiTaskEvictionScheduler<K, V> implements EvictionScheduler<K, V>
     @Override
     public void cancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
+        assert (map != null);
+        assert (e != null);
         ScheduledFuture<?> future = (ScheduledFuture<?>) e.getData();
         if (future != null && !future.isDone()) {
             future.cancel(false);
+        }
+    }
+
+    @Override
+    public void cancelAllEvictions(ConcurrentMapWithTimedEvictionDecorator<K, V> map) {
+        assert (map != null);
+        for (Entry<K, V> e : map.entrySet()) {
+            cancelEviction(map, (EvictibleEntry<K, V>) e);
         }
     }
 
@@ -47,6 +60,8 @@ public class MultiTaskEvictionScheduler<K, V> implements EvictionScheduler<K, V>
 
         public EvictionRunnable(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
             EvictibleEntry<K, V> e) {
+            assert (map != null);
+            assert (e != null);
             mr = new WeakReference<ConcurrentMapWithTimedEvictionDecorator<K, V>>(map);
             er = new WeakReference<EvictibleEntry<K, V>>(e);
         }

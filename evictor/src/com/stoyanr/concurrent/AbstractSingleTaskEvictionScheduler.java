@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public abstract class AbstractSingleTaskEvictionScheduler<K, V> implements EvictionScheduler<K, V> {
@@ -12,6 +13,7 @@ public abstract class AbstractSingleTaskEvictionScheduler<K, V> implements Evict
 
     protected final ScheduledExecutorService ses;
     protected final ConcurrentNavigableMap<Long, EvictibleEntry<K, V>> queue;
+    protected ScheduledFuture<?> future = null;
 
     public AbstractSingleTaskEvictionScheduler() {
         this(new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE));
@@ -27,6 +29,8 @@ public abstract class AbstractSingleTaskEvictionScheduler<K, V> implements Evict
     @Override
     public void scheduleEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
+        assert (map != null);
+        assert (e != null);
         if (e.isEvictible()) {
             queue.put(e.getEvictionTime(), e);
             onScheduleEviction(map, e);
@@ -36,10 +40,19 @@ public abstract class AbstractSingleTaskEvictionScheduler<K, V> implements Evict
     @Override
     public void cancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e) {
+        assert (map != null);
+        assert (e != null);
         if (e.isEvictible()) {
             queue.remove(e.getEvictionTime(), e);
             onCancelEviction(map, e);
         }
+    }
+
+    @Override
+    public void cancelAllEvictions(ConcurrentMapWithTimedEvictionDecorator<K, V> map) {
+        assert (map != null);
+        queue.clear();
+        onCancelAllEvictions(map);
     }
 
     protected abstract void onScheduleEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
@@ -47,6 +60,8 @@ public abstract class AbstractSingleTaskEvictionScheduler<K, V> implements Evict
 
     protected abstract void onCancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
         EvictibleEntry<K, V> e);
+
+    protected abstract void onCancelAllEvictions(ConcurrentMapWithTimedEvictionDecorator<K, V> map);
 
     protected abstract void onEvictEntries(ConcurrentMapWithTimedEvictionDecorator<K, V> map);
 
@@ -67,6 +82,8 @@ public abstract class AbstractSingleTaskEvictionScheduler<K, V> implements Evict
 
         public EvictionRunnable(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
             AbstractSingleTaskEvictionScheduler<K, V> scheduler) {
+            assert (map != null);
+            assert (scheduler != null);
             mr = new WeakReference<ConcurrentMapWithTimedEvictionDecorator<K, V>>(map);
             sr = new WeakReference<AbstractSingleTaskEvictionScheduler<K, V>>(scheduler);
         }
