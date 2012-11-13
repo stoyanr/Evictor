@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -13,8 +13,8 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     private volatile Object data;
 
     public EvictibleEntry(K key, V value, long evictMs) {
-        assert (key != null);
-        assert (value != null);
+        if (evictMs < 0)
+            throw new IllegalArgumentException();
         this.key = key;
         this.value = value;
         this.evictible = (evictMs > 0);
@@ -33,7 +33,6 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
 
     @Override
     public synchronized V setValue(V value) {
-        assert (value != null);
         V oldValue = this.value;
         this.value = value;
         return oldValue;
@@ -61,7 +60,8 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
 
     @Override
     public String toString() {
-        return String.format("[key: %s, value: %s, evictionTime: %d]", key, value, evictionTime);
+        return String.format("[key: %s, value: %s, evictionTime: %d]",
+            (key != null) ? key : "null", (value != null) ? value : "null", evictionTime);
     }
 
     public static long now() {

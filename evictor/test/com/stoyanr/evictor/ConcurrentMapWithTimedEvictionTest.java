@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -24,6 +24,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import com.stoyanr.evictor.ConcurrentMapWithTimedEviction;
+import com.stoyanr.evictor.EvictibleEntry;
 
 @RunWith(value = Parameterized.class)
 public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWithTimedEvictionTest {
@@ -708,7 +711,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
 
     private boolean tooLate(long t, long factor) {
         long elapsed = System.nanoTime() - t;
-        System.out.printf("Too late: %d ms\n", ((double) elapsed / 1000000.0));
+        System.out.printf("Too late: %f ms\n", ((double) elapsed / 1000000.0));
         return (elapsed > NANOSECONDS.convert(evictMs * factor, MILLISECONDS));
     }
 
@@ -722,7 +725,9 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         if (numThreads == 1) {
             Thread.sleep(1);
             for (Runnable runnable : evictionExecutor.getQueue()) {
-                assertTrue(((ScheduledFuture<?>) runnable).isDone());
+                if ((runnable != null) && (runnable instanceof ScheduledFuture)) {
+                    assertTrue(((ScheduledFuture<?>) runnable).isDone());
+                }
             }
         }
     }

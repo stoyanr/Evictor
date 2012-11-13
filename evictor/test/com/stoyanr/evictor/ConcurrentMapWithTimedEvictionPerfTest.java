@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,6 +10,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import com.stoyanr.evictor.ConcurrentMapWithTimedEviction;
 
 @RunWith(value = Parameterized.class)
 public class ConcurrentMapWithTimedEvictionPerfTest extends

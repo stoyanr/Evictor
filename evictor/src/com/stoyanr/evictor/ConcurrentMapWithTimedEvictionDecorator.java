@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -6,6 +6,20 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * A {@link ConcurrentMapWithTimedEviction} implementation which decorates an existing
+ * {@link java.util.concurrent.ConcurrentMap} implementation. This class uses an instance of
+ * {@link EvictionScheduler} for automatically evicting entries when the time they are allowed to
+ * stay in the map has elapsed.
+ * 
+ * <p>
+ * This class and its views and iterators implement all of the <em>optional</em> methods of the
+ * {@link java.util.Map} and {@link java.util.Iterator} interfaces.
+ * 
+ * @author Stoyan Rachev
+ * @param <K> the type of keys maintained by this map
+ * @param <V> the type of mapped values
+ */
 public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K, V> implements
     ConcurrentMapWithTimedEviction<K, V> {
 
@@ -13,6 +27,15 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     private final EvictionScheduler<K, V> scheduler;
     private final transient EntrySet entrySet;
 
+    /**
+     * Creates a new map that supports timed entry eviction with the specified delegate and eviction
+     * scheduler.
+     * 
+     * @param delegate the actual map implementation to which all operations will be eventually
+     * delegated.
+     * @param scheduler the scheduler used for automatically evicting entries when the time they are
+     * allowed to stay in the map has elapsed.
+     */
     public ConcurrentMapWithTimedEvictionDecorator(ConcurrentMap<K, EvictibleEntry<K, V>> delegate,
         EvictionScheduler<K, V> scheduler) {
         super();
@@ -30,14 +53,12 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public boolean containsKey(Object key) {
-        assert (key != null);
         EvictibleEntry<K, V> e = delegate.get(key);
         return ((e == null) || evictIfExpired(e)) ? false : true;
     }
 
     @Override
     public boolean containsValue(Object value) {
-        assert (value != null);
         for (EvictibleEntry<K, V> e : delegate.values()) {
             if (e.getValue().equals(value)) {
                 if (evictIfExpired(e)) {
@@ -52,7 +73,6 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public V get(Object key) {
-        assert (key != null);
         EvictibleEntry<K, V> e = delegate.get(key);
         return ((e == null) || evictIfExpired(e)) ? null : e.getValue();
     }
@@ -64,8 +84,6 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public V put(K key, V value, long evictMs) {
-        assert (key != null);
-        assert (value != null);
         EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, value, evictMs);
         EvictibleEntry<K, V> oe = delegate.put(key, e);
         if (oe != null) {
@@ -82,8 +100,6 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public V putIfAbsent(K key, V value, long evictMs) {
-        assert (key != null);
-        assert (value != null);
         while (true) {
             EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, value, evictMs);
             EvictibleEntry<K, V> oe = delegate.putIfAbsent(key, e);
@@ -100,7 +116,6 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public V remove(Object key) {
-        assert (key != null);
         EvictibleEntry<K, V> oe = delegate.remove(key);
         if (oe != null) {
             cancelEviction(oe);
@@ -110,8 +125,6 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public boolean remove(Object key, Object value) {
-        assert (key != null);
-        assert (value != null);
         EvictibleEntry<K, V> oe = delegate.get(key);
         if ((oe == null) || evictIfExpired(oe) || !oe.getValue().equals(value)) {
             return false;
@@ -129,9 +142,6 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public V replace(K key, V value, long evictMs) {
-        assert (key != null);
-        assert (value != null);
-
         // Avoid replacing an expired entry
         EvictibleEntry<K, V> oe = delegate.get(key);
         if ((oe == null) || evictIfExpired(oe)) {
@@ -155,9 +165,6 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public boolean replace(K key, V oldValue, V newValue, long evictMs) {
-        assert (key != null);
-        assert (oldValue != null && newValue != null);
-
         // Avoid replacing an expired entry
         EvictibleEntry<K, V> oe = delegate.get(key);
         if ((oe == null) || evictIfExpired(oe) || !oldValue.equals(oe.getValue())) {
@@ -218,9 +225,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     }
 
     private void cancelAllEvictions() {
-        for (EvictibleEntry<K, V> e : delegate.values()) {
-            cancelEviction(e);
-        }
+        scheduler.cancelAllEvictions(this);
     }
 
     private final class EntrySet extends AbstractSet<Entry<K, V>> {
@@ -274,7 +279,10 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
         private final Iterator<Entry<K, EvictibleEntry<K, V>>> iterator = delegate.entrySet()
             .iterator();
-        private volatile Entry<K, V> ce;
+        private volatile Entry<K, V> ce = null;
+
+        public EntryIterator() {
+        }
 
         @Override
         public Entry<K, V> next() {

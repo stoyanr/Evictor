@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -76,7 +76,7 @@ public abstract class AbstractSingleTaskEvictionScheduler<K, V> implements Evict
         }
     }
 
-    protected static final class EvictionRunnable<K, V> implements Runnable {
+    static final class EvictionRunnable<K, V> implements Runnable {
         private final WeakReference<ConcurrentMapWithTimedEvictionDecorator<K, V>> mr;
         private final WeakReference<AbstractSingleTaskEvictionScheduler<K, V>> sr;
 

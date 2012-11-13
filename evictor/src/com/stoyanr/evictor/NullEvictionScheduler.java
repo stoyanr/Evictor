@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 public class NullEvictionScheduler<K, V> implements EvictionScheduler<K, V> {
 

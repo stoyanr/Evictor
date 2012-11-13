@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -10,7 +10,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.stoyanr.evictor.ConcurrentHashMapWithTimedEviction;
+import com.stoyanr.evictor.EvictionScheduler;
+import com.stoyanr.evictor.MultiTaskEvictionScheduler;
+import com.stoyanr.evictor.NullEvictionScheduler;
+import com.stoyanr.evictor.SingleDelayedTaskEvictionScheduler;
+import com.stoyanr.evictor.SingleRegularTaskEvictionScheduler;
 
 public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
@@ -19,6 +24,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     public static final long TIMEOUT_MS = 60 * 60 * 1000;
     public static final int MAX_EVICTION_THREADS = 1;
     public static final int MAX_MAP_SIZE = 1000000;
+    public static final float LOAD_FACTOR = 0.75f;
 
     public static final int RESULT_PASSED = 0;
     public static final int RESULT_INTERRUPTED = -1;
@@ -31,7 +37,6 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     public static final int IMPL_CHMWTE_SINGLE_DEL_TASK = 4;
     public static final int IMPL_CHMWTE_SINGLE_REG_TASK_T = 5;
     public static final int IMPL_CHMWTE_SINGLE_DEL_TASK_T = 6;
-    public static final int IMPL_CLHM = 10;
 
     protected final int impl;
     protected final long evictMs;
@@ -94,13 +99,10 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     }
 
     private void createMap() {
+        int capacity = Math.min(numThreads * numIterations, MAX_MAP_SIZE);
         switch (impl) {
         case IMPL_CHM:
-            map = new ConcurrentHashMap<>();
-            break;
-        case IMPL_CLHM:
-            map = new ConcurrentLinkedHashMap.Builder<Integer, String>().maximumWeightedCapacity(
-                numThreads * numIterations).build();
+            map = new ConcurrentHashMap<>(capacity, LOAD_FACTOR, numThreads);
             break;
         case IMPL_CHMWTE_NULL:
         case IMPL_CHMWTE_MULTI_TASK:
@@ -108,7 +110,8 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         case IMPL_CHMWTE_SINGLE_DEL_TASK:
         case IMPL_CHMWTE_SINGLE_REG_TASK_T:
         case IMPL_CHMWTE_SINGLE_DEL_TASK_T:
-            map = new ConcurrentHashMapWithTimedEviction<>(scheduler);
+            map = new ConcurrentHashMapWithTimedEviction<>(capacity, LOAD_FACTOR, numThreads,
+                scheduler);
             break;
         }
     }

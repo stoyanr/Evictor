@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import java.lang.ref.WeakReference;
 import java.util.Map.Entry;

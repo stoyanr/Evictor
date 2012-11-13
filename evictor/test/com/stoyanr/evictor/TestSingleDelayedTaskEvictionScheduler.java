@@ -1,10 +1,14 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.ScheduledExecutorService;
+
+import com.stoyanr.evictor.ConcurrentMapWithTimedEvictionDecorator;
+import com.stoyanr.evictor.EvictibleEntry;
+import com.stoyanr.evictor.SingleDelayedTaskEvictionScheduler;
 
 public class TestSingleDelayedTaskEvictionScheduler<K, V> extends
     SingleDelayedTaskEvictionScheduler<K, V> {

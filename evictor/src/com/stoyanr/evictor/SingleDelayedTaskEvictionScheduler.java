@@ -1,4 +1,4 @@
-package com.stoyanr.concurrent;
+package com.stoyanr.evictor;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
