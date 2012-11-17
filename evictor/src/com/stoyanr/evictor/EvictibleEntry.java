@@ -6,19 +6,29 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.util.Map.Entry;
 
 class EvictibleEntry<K, V> implements Entry<K, V> {
+    private final ConcurrentMapWithTimedEvictionDecorator<K, V> map;
     private final K key;
     private V value;
+    private final long evictMs;
     private final boolean evictible;
     private final long evictionTime;
     private volatile Object data;
 
-    public EvictibleEntry(K key, V value, long evictMs) {
+    public EvictibleEntry(ConcurrentMapWithTimedEvictionDecorator<K, V> map, K key, V value,
+        long evictMs) {
+        assert (map != null);
         if (evictMs < 0)
             throw new IllegalArgumentException();
+        this.map = map;
         this.key = key;
         this.value = value;
+        this.evictMs = evictMs;
         this.evictible = (evictMs > 0);
         this.evictionTime = (evictible) ? now() + NANOSECONDS.convert(evictMs, MILLISECONDS) : 0;
+    }
+
+    public ConcurrentMapWithTimedEvictionDecorator<K, V> getMap() {
+        return map;
     }
 
     @Override
@@ -58,10 +68,14 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
         return (evictible) ? (now() > evictionTime) : false;
     }
 
+    public void evict(boolean cancelPendingEviction) {
+        map.evict(this, cancelPendingEviction);
+    }
+
     @Override
     public String toString() {
-        return String.format("[key: %s, value: %s, evictionTime: %d]",
-            (key != null) ? key : "null", (value != null) ? value : "null", evictionTime);
+        return String.format("[%s, %s, %d]", (key != null) ? key : "null", (value != null) ? value
+            : "null", evictMs);
     }
 
     public static long now() {

@@ -12,10 +12,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import com.stoyanr.evictor.ConcurrentHashMapWithTimedEviction;
 import com.stoyanr.evictor.EvictionScheduler;
-import com.stoyanr.evictor.MultiTaskEvictionScheduler;
+import com.stoyanr.evictor.ExecutorServiceEvictionScheduler;
 import com.stoyanr.evictor.NullEvictionScheduler;
-import com.stoyanr.evictor.SingleDelayedTaskEvictionScheduler;
-import com.stoyanr.evictor.SingleRegularTaskEvictionScheduler;
+import com.stoyanr.evictor.RegularTaskEvictionScheduler;
 
 public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
@@ -32,11 +31,10 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
     public static final int IMPL_CHM = 0;
     public static final int IMPL_CHMWTE_NULL = 1;
-    public static final int IMPL_CHMWTE_MULTI_TASK = 2;
-    public static final int IMPL_CHMWTE_SINGLE_REG_TASK = 3;
-    public static final int IMPL_CHMWTE_SINGLE_DEL_TASK = 4;
-    public static final int IMPL_CHMWTE_SINGLE_REG_TASK_T = 5;
-    public static final int IMPL_CHMWTE_SINGLE_DEL_TASK_T = 6;
+    public static final int IMPL_CHMWTE_ESS = 2;
+    public static final int IMPL_CHMWTE_REG_TASK = 3;
+    public static final int IMPL_CHMWTE_DEL_TASK = 4;
+    public static final int IMPL_CHMWTE_ST = 5;
 
     protected final int impl;
     protected final long evictMs;
@@ -44,9 +42,9 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     protected final int numIterations;
 
     protected ScheduledThreadPoolExecutor evictionExecutor;
-    protected ThreadPoolExecutor testExecutor;
-    protected ConcurrentMap<Integer, String> map;
     protected EvictionScheduler<Integer, String> scheduler;
+    protected ConcurrentMap<Integer, String> map;
+    protected ThreadPoolExecutor testExecutor;
 
     public AbstractConcurrentMapWithTimedEvictionTest(int impl, long evictMs, int numThreads,
         int numIterations) {
@@ -57,63 +55,73 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         this.numIterations = numIterations;
     }
 
-    public void setUp() {
-        evictionExecutor = new ScheduledThreadPoolExecutor(MAX_EVICTION_THREADS);
-        testExecutor = new ThreadPoolExecutor(numThreads, Integer.MAX_VALUE, 0, NANOSECONDS,
-            new ArrayBlockingQueue<Runnable>(numThreads, true));
+    public void setUp() throws Exception {
+        createExecutor();
         createScheduler();
         createMap();
+        createTestExecutor();
     }
 
-    public void tearDown() {
-        evictionExecutor.shutdownNow();
+    public void tearDown() throws Exception {
+        if (scheduler != null) {
+            scheduler.shutdown();
+        }
     }
 
     public abstract void setUpIteration();
 
     public abstract void tearDownIteration();
 
-    private void createScheduler() {
+    protected void createExecutor() {
         switch (impl) {
-        case IMPL_CHMWTE_NULL:
-            scheduler = new NullEvictionScheduler<>();
-            break;
-        case IMPL_CHMWTE_MULTI_TASK:
-            scheduler = new MultiTaskEvictionScheduler<>(evictionExecutor);
-            break;
-        case IMPL_CHMWTE_SINGLE_REG_TASK:
-            scheduler = new SingleRegularTaskEvictionScheduler<>(evictionExecutor);
-            break;
-        case IMPL_CHMWTE_SINGLE_DEL_TASK:
-            scheduler = new SingleDelayedTaskEvictionScheduler<>(evictionExecutor);
-            break;
-        case IMPL_CHMWTE_SINGLE_REG_TASK_T:
-            scheduler = new TestSingleRegularTaskEvictionScheduler<>(evictionExecutor,
-                (numThreads == 1));
-            break;
-        case IMPL_CHMWTE_SINGLE_DEL_TASK_T:
-            scheduler = new TestSingleDelayedTaskEvictionScheduler<>(evictionExecutor,
-                (numThreads == 1));
+        case IMPL_CHMWTE_ESS:
+        case IMPL_CHMWTE_REG_TASK:
+        case IMPL_CHMWTE_DEL_TASK:
+            evictionExecutor = new ScheduledThreadPoolExecutor(MAX_EVICTION_THREADS);
             break;
         }
     }
 
-    private void createMap() {
+    protected void createScheduler() {
+        switch (impl) {
+        case IMPL_CHMWTE_NULL:
+            scheduler = new NullEvictionScheduler<>();
+            break;
+        case IMPL_CHMWTE_ESS:
+            scheduler = new ExecutorServiceEvictionScheduler<>(evictionExecutor);
+            break;
+        case IMPL_CHMWTE_REG_TASK:
+            scheduler = new RegularTaskEvictionScheduler<>(evictionExecutor);
+            break;
+        case IMPL_CHMWTE_DEL_TASK:
+            scheduler = new DelayedTaskEvictionScheduler<>(evictionExecutor);
+            break;
+        case IMPL_CHMWTE_ST:
+            scheduler = new SingleThreadEvictionScheduler<>();
+            break;
+        }
+    }
+
+    protected void createMap() {
         int capacity = Math.min(numThreads * numIterations, MAX_MAP_SIZE);
         switch (impl) {
         case IMPL_CHM:
             map = new ConcurrentHashMap<>(capacity, LOAD_FACTOR, numThreads);
             break;
         case IMPL_CHMWTE_NULL:
-        case IMPL_CHMWTE_MULTI_TASK:
-        case IMPL_CHMWTE_SINGLE_REG_TASK:
-        case IMPL_CHMWTE_SINGLE_DEL_TASK:
-        case IMPL_CHMWTE_SINGLE_REG_TASK_T:
-        case IMPL_CHMWTE_SINGLE_DEL_TASK_T:
+        case IMPL_CHMWTE_ESS:
+        case IMPL_CHMWTE_REG_TASK:
+        case IMPL_CHMWTE_DEL_TASK:
+        case IMPL_CHMWTE_ST:
             map = new ConcurrentHashMapWithTimedEviction<>(capacity, LOAD_FACTOR, numThreads,
                 scheduler);
             break;
         }
+    }
+
+    private void createTestExecutor() {
+        testExecutor = new ThreadPoolExecutor(numThreads, Integer.MAX_VALUE, 0, NANOSECONDS,
+            new ArrayBlockingQueue<Runnable>(numThreads, true));
     }
 
     protected interface TestTask {
@@ -126,7 +134,6 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         executeRunnables(runnables);
         checkResults(runnables);
         printAverageTime(calcAverageTime(runnables));
-        printStatistics();
     }
 
     private TestRunnable[] createRunnables(TestTask task) {
@@ -173,28 +180,6 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
     private void printAverageTime(double avgTime) {
         System.out.printf("Average time: %f us\n", avgTime);
-    }
-
-    private void printStatistics() {
-        if (scheduler instanceof TestSingleDelayedTaskEvictionScheduler) {
-            printStatistics((TestSingleDelayedTaskEvictionScheduler<Integer, String>) scheduler);
-        } else if (scheduler instanceof TestSingleRegularTaskEvictionScheduler) {
-            printStatistics((TestSingleRegularTaskEvictionScheduler<Integer, String>) scheduler);
-        }
-    }
-
-    private void printStatistics(TestSingleRegularTaskEvictionScheduler<Integer, String> ts) {
-        // @formatter:off
-        System.out.printf("Scheduler: onScheduleEviction: %d, onCancelEviction: %d, onCancelAllEvictions: %d, onEvictEntries: %d\n", 
-            ts.onScheduleEvictionCalls, ts.onCancelEvictionCalls, ts.onCancelAllEvictionCalls, ts.onEvictEntriesCalls);
-        // @formatter:on
-    }
-
-    private void printStatistics(TestSingleDelayedTaskEvictionScheduler<Integer, String> ts) {
-        // @formatter:off
-        System.out.printf("Scheduler: onScheduleEviction: %d, onCancelEviction: %d, onCancelAllEvictions: %d, onEvictEntries: %d\n", 
-            ts.onScheduleEvictionCalls, ts.onCancelEvictionCalls, ts.onCancelAllEvictionCalls, ts.onEvictEntriesCalls);
-        // @formatter:on
     }
 
     private final class TestRunnable implements Runnable {

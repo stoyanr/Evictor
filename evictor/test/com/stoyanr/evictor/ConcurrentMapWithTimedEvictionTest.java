@@ -25,27 +25,26 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.stoyanr.evictor.ConcurrentMapWithTimedEviction;
-import com.stoyanr.evictor.EvictibleEntry;
-
 @RunWith(value = Parameterized.class)
 public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWithTimedEvictionTest {
 
     private static final int NUM_ITERATIONS = 10;
     private static final int EVICT_MS = 8;
+    private static final int DELAY_MS = 3;
 
     @Parameters
     public static Collection<Object[]> data() {
         // @formatter:off
         return Arrays.asList(new Object[][] { 
-            { IMPL_CHMWTE_MULTI_TASK, 1 }, { IMPL_CHMWTE_MULTI_TASK, 50 }, 
-            { IMPL_CHMWTE_SINGLE_REG_TASK_T, 1 }, { IMPL_CHMWTE_SINGLE_REG_TASK, 50 },  
-            { IMPL_CHMWTE_SINGLE_DEL_TASK_T, 1 }, { IMPL_CHMWTE_SINGLE_DEL_TASK, 50 },  
+            { IMPL_CHMWTE_ESS, 1 }, { IMPL_CHMWTE_ESS, 50 }, 
+            { IMPL_CHMWTE_REG_TASK, 1 }, { IMPL_CHMWTE_REG_TASK, 50 },  
+            { IMPL_CHMWTE_DEL_TASK, 1 }, { IMPL_CHMWTE_DEL_TASK, 50 },  
+            { IMPL_CHMWTE_ST, 1 }, { IMPL_CHMWTE_ST, 50 },  
         });
         // @formatter:on
     }
 
-    private ConcurrentMapWithTimedEviction<Integer, String> map;
+    private ConcurrentMapWithTimedEvictionDecorator<Integer, String> map;
 
     public ConcurrentMapWithTimedEvictionTest(int impl, int numThreads) {
         super(impl, EVICT_MS, numThreads, NUM_ITERATIONS);
@@ -53,14 +52,14 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
 
     @Before
     @Override
-    public void setUp() {
+    public void setUp() throws Exception {
         super.setUp();
-        map = (ConcurrentMapWithTimedEviction<Integer, String>) super.map;
+        map = (ConcurrentMapWithTimedEvictionDecorator<Integer, String>) super.map;
     }
 
     @After
     @Override
-    public void tearDown() {
+    public void tearDown() throws Exception {
         super.tearDown();
     }
 
@@ -87,7 +86,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         assertNull(map.put(0, getValue(0), evictMs));
         assertQueueSize(1);
         assertTrue((map.size() == 1) || ((map.size() == 0) && tooLate(t0)));
-        Thread.sleep(evictMs + 4);
+        Thread.sleep(evictMs + DELAY_MS);
         assertEquals(0, map.size());
         assertAllDone();
     }
@@ -554,7 +553,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         assertQueueSize(1);
         assertTrue((ks.size() == (m.size() + 1)) || ((ks.size() == m.size()) && tooLate(t0)));
         assertTrue(ks.contains(0) || tooLate(t0));
-        Thread.sleep(evictMs + 4);
+        Thread.sleep(evictMs + DELAY_MS);
         assertEquals(m.size(), ks.size());
         assertFalse(ks.contains(0));
         assertAllDone();
@@ -565,14 +564,14 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         Map<Integer, String> m = asMap(Arrays.asList(1, 2, 3));
         map.putAll(m);
         Set<Entry<Integer, String>> es = map.entrySet();
-        
+
         assertFalse(es.isEmpty());
         assertEquals(es.size(), m.size());
         for (Entry<Integer, String> ex : es) {
             assertTrue(es.contains(ex));
         }
-        
-        Entry<Integer, String> e = new EvictibleEntry<>(4, "4", 0);
+
+        Entry<Integer, String> e = new EvictibleEntry<>(map, 4, "4", 0);
         assertFalse(es.contains(e));
         assertTrue(es.add(e));
         assertFalse(es.add(e));
@@ -581,20 +580,20 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         assertFalse(es.remove(e));
         assertFalse(es.contains(new Object()));
         assertFalse(es.remove(new Object()));
-        
-        Entry<Integer, String> e2 = new EvictibleEntry<>(1, "", 0);
+
+        Entry<Integer, String> e2 = new EvictibleEntry<>(map, 1, "", 0);
         assertFalse(es.contains(e2));
         assertFalse(es.add(e2));
         assertFalse(es.remove(e2));
-        
-        Entry<Integer, String> e3 = new EvictibleEntry<>(1, "1", 0);
+
+        Entry<Integer, String> e3 = new EvictibleEntry<>(map, 1, "1", 0);
         assertTrue(es.contains(e3));
         assertTrue(es.remove(e3));
-        
+
         Object o = new Object();
         assertFalse(es.contains(o));
         assertFalse(es.remove(o));
-        
+
         Set<Entry<Integer, String>> es2 = map.entrySet();
         es2.clear();
         assertTrue(es2.isEmpty());
@@ -606,13 +605,13 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         Map<Integer, String> m = asMap(Arrays.asList(1, 2, 3));
         map.putAll(m);
         Set<Entry<Integer, String>> es = map.entrySet();
-        EvictibleEntry<Integer, String> e0 = new EvictibleEntry<>(0, getValue(0), 0);
+        EvictibleEntry<Integer, String> e0 = new EvictibleEntry<>(map, 0, getValue(0), 0);
         long t0 = System.nanoTime();
         assertNull(map.put(0, getValue(0), evictMs));
         assertQueueSize(1);
         assertTrue((es.size() == (m.size() + 1)) || ((es.size() == m.size()) && tooLate(t0)));
         assertTrue(es.contains(e0) || tooLate(t0));
-        Thread.sleep(evictMs + 4);
+        Thread.sleep(evictMs + DELAY_MS);
         assertEquals(m.size(), es.size());
         assertFalse(es.contains(e0));
         assertAllDone();
@@ -641,7 +640,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         map.putAll(m);
         Set<Entry<Integer, String>> es = map.entrySet();
         assertEquals(es.size(), m.size());
-        assertFalse(es.contains(new EvictibleEntry<>(1, getValue(1), 0)));
+        assertFalse(es.contains(new EvictibleEntry<>(map, 1, getValue(1), 0)));
         Iterator<Entry<Integer, String>> it = es.iterator();
         assertTrue(it.hasNext());
         while (it.hasNext()) {
@@ -650,7 +649,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
             ex.setValue(getValue(ex.getKey()));
         }
         assertFalse(it.hasNext());
-        assertTrue(es.contains(new EvictibleEntry<>(1, getValue(1), 0)));
+        assertTrue(es.contains(new EvictibleEntry<>(map, 1, getValue(1), 0)));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -684,10 +683,10 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         map.put(id2, value2, evictMs * 2);
         assertTrue((map.size() == 2) || ((map.size() == 1) && tooLate(t0))
             || ((map.size() == 0) && tooLate(t1, 2)));
-        Thread.sleep(evictMs + 4);
+        Thread.sleep(evictMs + DELAY_MS);
         assertTrue((map.size() == 1) || ((map.size() == 0) && tooLate(t1, 2)));
-        Thread.sleep(evictMs * 2 + 4);
-        assertTrue(map.isEmpty());
+        Thread.sleep(evictMs * 2 + DELAY_MS);
+        assertEquals(0, map.size());
         assertAllDone();
     }
 
@@ -700,7 +699,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
     }
 
     private void clearEvictionExecutorQueue() {
-        if (numThreads == 1) {
+        if (numThreads == 1 && evictionExecutor != null) {
             evictionExecutor.getQueue().clear();
         }
     }
@@ -716,13 +715,13 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
     }
 
     private void assertQueueSize(int expected) {
-        if (numThreads == 1) {
+        if (numThreads == 1 && evictionExecutor != null) {
             assertEquals(expected, evictionExecutor.getQueue().size());
         }
     }
 
     private void assertAllDone() throws InterruptedException {
-        if (numThreads == 1) {
+        if (numThreads == 1 && evictionExecutor != null) {
             Thread.sleep(1);
             for (Runnable runnable : evictionExecutor.getQueue()) {
                 if ((runnable != null) && (runnable instanceof ScheduledFuture)) {
@@ -731,5 +730,5 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
             }
         }
     }
-    
+
 }

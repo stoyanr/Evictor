@@ -84,7 +84,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
     @Override
     public V put(K key, V value, long evictMs) {
-        EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, value, evictMs);
+        EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(this, key, value, evictMs);
         EvictibleEntry<K, V> oe = delegate.put(key, e);
         if (oe != null) {
             cancelEviction(oe);
@@ -101,7 +101,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     @Override
     public V putIfAbsent(K key, V value, long evictMs) {
         while (true) {
-            EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, value, evictMs);
+            EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(this, key, value, evictMs);
             EvictibleEntry<K, V> oe = delegate.putIfAbsent(key, e);
             if (oe == null) {
                 scheduleEviction(e);
@@ -149,7 +149,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         }
 
         // Attempt replacement and schedule eviction if successful
-        EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, value, evictMs);
+        EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(this, key, value, evictMs);
         oe = delegate.replace(key, e);
         if (oe != null) {
             cancelEviction(oe);
@@ -172,7 +172,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
         }
 
         // Attempt replacement and schedule eviction if successful
-        EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(key, newValue, evictMs);
+        EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(this, key, newValue, evictMs);
         boolean replaced = delegate.replace(key, oe, e);
         if (replaced) {
             cancelEviction(oe);
@@ -217,15 +217,17 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     }
 
     private void scheduleEviction(EvictibleEntry<K, V> e) {
-        scheduler.scheduleEviction(this, e);
+        scheduler.scheduleEviction(e);
     }
 
     private void cancelEviction(EvictibleEntry<K, V> e) {
-        scheduler.cancelEviction(this, e);
+        scheduler.cancelEviction(e);
     }
 
     private void cancelAllEvictions() {
-        scheduler.cancelAllEvictions(this);
+        for (EvictibleEntry<K, V> e : delegate.values()) {
+            scheduler.cancelEviction(e);
+        }
     }
 
     private final class EntrySet extends AbstractSet<Entry<K, V>> {

@@ -24,8 +24,7 @@ public interface EvictionScheduler<K, V> {
      * been already added to the specified map
      * @throws NullPointerException if either the map or the entry is null
      */
-    public void scheduleEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
-        EvictibleEntry<K, V> e);
+    public void scheduleEviction(EvictibleEntry<K, V> e);
 
     /**
      * Cancels the eviction of the specified entry from the specified map. This method is called by
@@ -39,16 +38,7 @@ public interface EvictionScheduler<K, V> {
      * been already removed from the specified map
      * @throws NullPointerException if either the map or the entry is null
      */
-    public void cancelEviction(ConcurrentMapWithTimedEvictionDecorator<K, V> map,
-        EvictibleEntry<K, V> e);
+    public void cancelEviction(EvictibleEntry<K, V> e);
 
-    /**
-     * Cancels all pending evictions for the specified map. This method is called by the associated
-     * {@link com.stoyanr.evictor.ConcurrentMapWithTimedEvictionDecorator} whenever all entries are
-     * removed from the map, just after they have been removed.
-     * 
-     * @param map the map for which all pending evictions should be cancelled
-     * @throws NullPointerException if the map is null
-     */
-    public void cancelAllEvictions(ConcurrentMapWithTimedEvictionDecorator<K, V> map);
+    public void shutdown();
 }

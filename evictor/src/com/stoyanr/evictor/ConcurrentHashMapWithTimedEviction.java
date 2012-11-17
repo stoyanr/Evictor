@@ -145,6 +145,6 @@ public class ConcurrentHashMapWithTimedEviction<K, V> extends
     }
 
     private static <K, V> EvictionScheduler<K, V> defaultScheduler() {
-        return new SingleRegularTaskEvictionScheduler<K, V>();
+        return new SingleThreadEvictionScheduler<K, V>();
     }
 }
