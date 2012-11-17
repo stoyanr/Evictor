@@ -37,9 +37,10 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         // @formatter:off
         return Arrays.asList(new Object[][] { 
             { IMPL_CHMWTE_ESS, 1 }, { IMPL_CHMWTE_ESS, 50 }, 
-            { IMPL_CHMWTE_REG_TASK, 1 }, { IMPL_CHMWTE_REG_TASK, 50 },  
-            { IMPL_CHMWTE_DEL_TASK, 1 }, { IMPL_CHMWTE_DEL_TASK, 50 },  
-            { IMPL_CHMWTE_ST, 1 }, { IMPL_CHMWTE_ST, 50 },  
+            { IMPL_CHMWTE_NM_RT, 1 }, { IMPL_CHMWTE_NM_RT, 50 },  
+            { IMPL_CHMWTE_NM_DT, 1 }, { IMPL_CHMWTE_NM_DT, 50 },  
+            { IMPL_CHMWTE_NM_ST, 1 }, { IMPL_CHMWTE_NM_ST, 50 },  
+            { IMPL_CHMWTE_PQ_ST, 1 }, { IMPL_CHMWTE_PQ_ST, 50 },  
         });
         // @formatter:on
     }

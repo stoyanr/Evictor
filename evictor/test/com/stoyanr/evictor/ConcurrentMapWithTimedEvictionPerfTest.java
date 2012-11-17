@@ -24,13 +24,14 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
     @Parameters
     public static Collection<Object[]> data() {
         // @formatter:off
-        return Arrays.asList(new Object[][] { 
+        return Arrays.asList(new Object[][] {
             { IMPL_CHM }, 
             { IMPL_CHMWTE_NULL }, 
             { IMPL_CHMWTE_ESS }, 
-            { IMPL_CHMWTE_REG_TASK },
-            { IMPL_CHMWTE_DEL_TASK },
-            { IMPL_CHMWTE_ST }
+            { IMPL_CHMWTE_NM_RT },
+            { IMPL_CHMWTE_NM_DT },
+            { IMPL_CHMWTE_NM_ST },
+//            { IMPL_CHMWTE_PQ_ST }
         });
         // @formatter:on
     }

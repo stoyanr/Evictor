@@ -30,11 +30,13 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     public static final int RESULT_ASSERTION_FAILED = -2;
 
     public static final int IMPL_CHM = 0;
-    public static final int IMPL_CHMWTE_NULL = 1;
-    public static final int IMPL_CHMWTE_ESS = 2;
-    public static final int IMPL_CHMWTE_REG_TASK = 3;
-    public static final int IMPL_CHMWTE_DEL_TASK = 4;
-    public static final int IMPL_CHMWTE_ST = 5;
+    public static final int IMPL_CHMWTE_NULL = 1; // Null
+    public static final int IMPL_CHMWTE_ESS = 2; // ExecutionService
+    public static final int IMPL_CHMWTE_NM_RT = 3; // RegularTask with NavigableMap
+    public static final int IMPL_CHMWTE_NM_DT = 4; // DelayedTask with NavigableMap
+    public static final int IMPL_CHMWTE_NM_ST = 5; // SingleThread with NavigableMap
+
+    public static final int IMPL_CHMWTE_PQ_ST = 15; // SingleThread with PriorityQueue
 
     protected final int impl;
     protected final long evictMs;
@@ -75,8 +77,8 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     protected void createExecutor() {
         switch (impl) {
         case IMPL_CHMWTE_ESS:
-        case IMPL_CHMWTE_REG_TASK:
-        case IMPL_CHMWTE_DEL_TASK:
+        case IMPL_CHMWTE_NM_RT:
+        case IMPL_CHMWTE_NM_DT:
             evictionExecutor = new ScheduledThreadPoolExecutor(MAX_EVICTION_THREADS);
             break;
         }
@@ -90,14 +92,19 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         case IMPL_CHMWTE_ESS:
             scheduler = new ExecutorServiceEvictionScheduler<>(evictionExecutor);
             break;
-        case IMPL_CHMWTE_REG_TASK:
+        case IMPL_CHMWTE_NM_RT:
             scheduler = new RegularTaskEvictionScheduler<>(evictionExecutor);
             break;
-        case IMPL_CHMWTE_DEL_TASK:
+        case IMPL_CHMWTE_NM_DT:
             scheduler = new DelayedTaskEvictionScheduler<>(evictionExecutor);
             break;
-        case IMPL_CHMWTE_ST:
+        case IMPL_CHMWTE_NM_ST:
             scheduler = new SingleThreadEvictionScheduler<>();
+            break;
+        case IMPL_CHMWTE_PQ_ST:
+            int capacity = Math.min(numThreads * numIterations, MAX_MAP_SIZE);
+            scheduler = new SingleThreadEvictionScheduler<>(
+                new PriorityEvictionQueue<Integer, String>(capacity));
             break;
         }
     }
@@ -110,9 +117,10 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
             break;
         case IMPL_CHMWTE_NULL:
         case IMPL_CHMWTE_ESS:
-        case IMPL_CHMWTE_REG_TASK:
-        case IMPL_CHMWTE_DEL_TASK:
-        case IMPL_CHMWTE_ST:
+        case IMPL_CHMWTE_NM_RT:
+        case IMPL_CHMWTE_NM_DT:
+        case IMPL_CHMWTE_NM_ST:
+        case IMPL_CHMWTE_PQ_ST:
             map = new ConcurrentHashMapWithTimedEviction<>(capacity, LOAD_FACTOR, numThreads,
                 scheduler);
             break;

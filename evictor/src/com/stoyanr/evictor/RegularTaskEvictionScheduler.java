@@ -2,7 +2,6 @@ package com.stoyanr.evictor;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -23,12 +22,11 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
         this.ses = ses;
     }
 
-    public RegularTaskEvictionScheduler(ConcurrentNavigableMap<Long, EvictibleEntry<K, V>> queue) {
+    public RegularTaskEvictionScheduler(EvictionQueue<K, V> queue) {
         this(queue, new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE));
     }
 
-    public RegularTaskEvictionScheduler(ConcurrentNavigableMap<Long, EvictibleEntry<K, V>> queue, 
-        ScheduledExecutorService ses) {
+    public RegularTaskEvictionScheduler(EvictionQueue<K, V> queue, ScheduledExecutorService ses) {
         super(queue);
         assert (ses != null);
         this.ses = ses;

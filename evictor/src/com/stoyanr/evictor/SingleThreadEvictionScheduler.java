@@ -1,7 +1,5 @@
 package com.stoyanr.evictor;
 
-import java.util.concurrent.ConcurrentNavigableMap;
-
 public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionScheduler<K, V> {
 
     private volatile boolean finished = false;
@@ -12,7 +10,7 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
         startThread();
     }
 
-    public SingleThreadEvictionScheduler(ConcurrentNavigableMap<Long, EvictibleEntry<K, V>> queue) {
+    public SingleThreadEvictionScheduler(EvictionQueue<K, V> queue) {
         super(queue);
         startThread();
     }

@@ -28,9 +28,10 @@ public class ConcurrentMapWithTimedEvictionAccuracyTest extends
         // @formatter:off
         return Arrays.asList(new Object[][] { 
             { IMPL_CHMWTE_ESS }, 
-            { IMPL_CHMWTE_REG_TASK },
-            { IMPL_CHMWTE_DEL_TASK },
-            { IMPL_CHMWTE_ST }
+            { IMPL_CHMWTE_NM_RT },
+            { IMPL_CHMWTE_NM_DT },
+            { IMPL_CHMWTE_NM_ST },
+            { IMPL_CHMWTE_PQ_ST },
         });
         // @formatter:on
     }
@@ -73,9 +74,10 @@ public class ConcurrentMapWithTimedEvictionAccuracyTest extends
         int capacity = Math.min(numThreads * numIterations, MAX_MAP_SIZE);
         switch (impl) {
         case IMPL_CHMWTE_ESS:
-        case IMPL_CHMWTE_REG_TASK:
-        case IMPL_CHMWTE_DEL_TASK:
-        case IMPL_CHMWTE_ST:
+        case IMPL_CHMWTE_NM_RT:
+        case IMPL_CHMWTE_NM_DT:
+        case IMPL_CHMWTE_NM_ST:
+        case IMPL_CHMWTE_PQ_ST:
             map = new TestConcurrentMapWithTimedEvictionDecorator<>(
                 new ConcurrentHashMap<Integer, EvictibleEntry<Integer, String>>(capacity,
                     LOAD_FACTOR, numThreads), scheduler);
