@@ -572,7 +572,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
             assertTrue(es.contains(ex));
         }
 
-        Entry<Integer, String> e = new EvictibleEntry<>(map, 4, "4", 0);
+        Entry<Integer, String> e = new EvictibleEntry<Integer, String>(map, 4, "4", 0);
         assertFalse(es.contains(e));
         assertTrue(es.add(e));
         assertFalse(es.add(e));
@@ -582,12 +582,12 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         assertFalse(es.contains(new Object()));
         assertFalse(es.remove(new Object()));
 
-        Entry<Integer, String> e2 = new EvictibleEntry<>(map, 1, "", 0);
+        Entry<Integer, String> e2 = new EvictibleEntry<Integer, String>(map, 1, "", 0);
         assertFalse(es.contains(e2));
         assertFalse(es.add(e2));
         assertFalse(es.remove(e2));
 
-        Entry<Integer, String> e3 = new EvictibleEntry<>(map, 1, "1", 0);
+        Entry<Integer, String> e3 = new EvictibleEntry<Integer, String>(map, 1, "1", 0);
         assertTrue(es.contains(e3));
         assertTrue(es.remove(e3));
 
@@ -606,7 +606,8 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         Map<Integer, String> m = asMap(Arrays.asList(1, 2, 3));
         map.putAll(m);
         Set<Entry<Integer, String>> es = map.entrySet();
-        EvictibleEntry<Integer, String> e0 = new EvictibleEntry<>(map, 0, getValue(0), 0);
+        EvictibleEntry<Integer, String> e0 = new EvictibleEntry<Integer, String>(map, 0,
+            getValue(0), 0);
         long t0 = System.nanoTime();
         assertNull(map.put(0, getValue(0), evictMs));
         assertQueueSize(1);
@@ -641,7 +642,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         map.putAll(m);
         Set<Entry<Integer, String>> es = map.entrySet();
         assertEquals(es.size(), m.size());
-        assertFalse(es.contains(new EvictibleEntry<>(map, 1, getValue(1), 0)));
+        assertFalse(es.contains(new EvictibleEntry<Integer, String>(map, 1, getValue(1), 0)));
         Iterator<Entry<Integer, String>> it = es.iterator();
         assertTrue(it.hasNext());
         while (it.hasNext()) {
@@ -650,7 +651,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
             ex.setValue(getValue(ex.getKey()));
         }
         assertFalse(it.hasNext());
-        assertTrue(es.contains(new EvictibleEntry<>(map, 1, getValue(1), 0)));
+        assertTrue(es.contains(new EvictibleEntry<Integer, String>(map, 1, getValue(1), 0)));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -692,7 +693,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
     }
 
     private static Map<Integer, String> asMap(List<Integer> values) {
-        Map<Integer, String> map = new HashMap<>();
+        Map<Integer, String> map = new HashMap<Integer, String>();
         for (int i : values) {
             map.put(i, String.valueOf(i));
         }

@@ -78,7 +78,7 @@ public class ConcurrentMapWithTimedEvictionAccuracyTest extends
         case IMPL_CHMWTE_NM_DT:
         case IMPL_CHMWTE_NM_ST:
         case IMPL_CHMWTE_PQ_ST:
-            map = new TestConcurrentMapWithTimedEvictionDecorator<>(
+            map = new TestConcurrentMapWithTimedEvictionDecorator<Integer, String>(
                 new ConcurrentHashMap<Integer, EvictibleEntry<Integer, String>>(capacity,
                     LOAD_FACTOR, numThreads), scheduler);
             break;

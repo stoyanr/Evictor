@@ -82,23 +82,24 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     protected void createScheduler() {
         switch (impl) {
         case IMPL_CHMWTE_NULL:
-            scheduler = new NullEvictionScheduler<>();
+            scheduler = new NullEvictionScheduler<Integer, String>();
             break;
         case IMPL_CHMWTE_ESS:
-            scheduler = new ExecutorServiceEvictionScheduler<>(evictionExecutor);
+            scheduler = new ExecutorServiceEvictionScheduler<Integer, String>(evictionExecutor);
             break;
         case IMPL_CHMWTE_NM_RT:
-            scheduler = new RegularTaskEvictionScheduler<>(evictionExecutor, 750, MICROSECONDS);
+            scheduler = new RegularTaskEvictionScheduler<Integer, String>(evictionExecutor, 750,
+                MICROSECONDS);
             break;
         case IMPL_CHMWTE_NM_DT:
-            scheduler = new DelayedTaskEvictionScheduler<>(evictionExecutor);
+            scheduler = new DelayedTaskEvictionScheduler<Integer, String>(evictionExecutor);
             break;
         case IMPL_CHMWTE_NM_ST:
-            scheduler = new SingleThreadEvictionScheduler<>();
+            scheduler = new SingleThreadEvictionScheduler<Integer, String>();
             break;
         case IMPL_CHMWTE_PQ_ST:
             int capacity = Math.min(numThreads * numIterations, MAX_MAP_SIZE);
-            scheduler = new SingleThreadEvictionScheduler<>(
+            scheduler = new SingleThreadEvictionScheduler<Integer, String>(
                 new PriorityEvictionQueue<Integer, String>(capacity));
             break;
         }
@@ -108,7 +109,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         int capacity = Math.min(numThreads * numIterations, MAX_MAP_SIZE);
         switch (impl) {
         case IMPL_CHM:
-            map = new ConcurrentHashMap<>(capacity, LOAD_FACTOR, numThreads);
+            map = new ConcurrentHashMap<Integer, String>(capacity, LOAD_FACTOR, numThreads);
             break;
         case IMPL_CHMWTE_NULL:
         case IMPL_CHMWTE_ESS:
@@ -116,8 +117,8 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         case IMPL_CHMWTE_NM_DT:
         case IMPL_CHMWTE_NM_ST:
         case IMPL_CHMWTE_PQ_ST:
-            map = new ConcurrentHashMapWithTimedEviction<>(capacity, LOAD_FACTOR, numThreads,
-                scheduler);
+            map = new ConcurrentHashMapWithTimedEviction<Integer, String>(capacity, LOAD_FACTOR,
+                numThreads, scheduler);
             break;
         }
     }
