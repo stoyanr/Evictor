@@ -13,7 +13,8 @@ public class NavigableMapEvictionQueue<K, V> implements EvictionQueue<K, V> {
     }
 
     public NavigableMapEvictionQueue(ConcurrentNavigableMap<Long, EvictibleEntry<K, V>> queue) {
-        assert (queue != null);
+        if (queue == null)
+            throw new NullPointerException();
         this.queue = queue;
     }
 

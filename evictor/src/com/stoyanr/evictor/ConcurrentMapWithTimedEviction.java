@@ -23,8 +23,10 @@ public interface ConcurrentMapWithTimedEviction<K, V> extends ConcurrentMap<K, V
      * 
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
-     * @param evictMs the time in ms during which the entry can stay in the map (time-to-live); when
-     * this time has elapsed, the entry will be evicted from the map automatically
+     * @param evictMs the time in ms during which the entry can stay in the map (time-to-live). When
+     * this time has elapsed, the entry will be evicted from the map automatically. A value of 0 for
+     * this argument means "forever", i.e. <tt>put(key, value, 0)</tt> is equivalent to
+     * <tt>put(key, value).
      * @return the previous value associated with <tt>key</tt>, or <tt>null</tt> if there was no
      * mapping for <tt>key</tt>. (A <tt>null</tt> return can also indicate that the map previously
      * associated <tt>null</tt> with <tt>key</tt>, if the implementation supports <tt>null</tt>
@@ -55,8 +57,10 @@ public interface ConcurrentMapWithTimedEviction<K, V> extends ConcurrentMap<K, V
      * 
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
-     * @param evictMs the time in ms during which the entry can stay in the map (time-to-live); when
-     * this time has elapsed, the entry will be evicted from the map automatically
+     * @param evictMs the time in ms during which the entry can stay in the map (time-to-live). When
+     * this time has elapsed, the entry will be evicted from the map automatically. A value of 0 for
+     * this argument means "forever", i.e. <tt>putIfAbsent(key, value, 0)</tt> is equivalent to
+     * <tt>putIfAbsent(key, value).
      * @return the previous value associated with the specified key, or <tt>null</tt> if there was
      * no mapping for the key. (A <tt>null</tt> return can also indicate that the map previously
      * associated <tt>null</tt> with the key, if the implementation supports null values.)
@@ -86,8 +90,10 @@ public interface ConcurrentMapWithTimedEviction<K, V> extends ConcurrentMap<K, V
      * 
      * @param key key with which the specified value is associated
      * @param value value to be associated with the specified key
-     * @param evictMs the time in ms during which the entry can stay in the map (time-to-live); when
-     * this time has elapsed, the entry will be evicted from the map automatically
+     * @param evictMs the time in ms during which the entry can stay in the map (time-to-live). When
+     * this time has elapsed, the entry will be evicted from the map automatically. A value of 0 for
+     * this argument means "forever", i.e. <tt>replace(key, value, 0)</tt> is equivalent to
+     * <tt>replace(key, value).
      * @return the previous value associated with the specified key, or <tt>null</tt> if there was
      * no mapping for the key. (A <tt>null</tt> return can also indicate that the map previously
      * associated <tt>null</tt> with the key, if the implementation supports null values.)
@@ -119,8 +125,10 @@ public interface ConcurrentMapWithTimedEviction<K, V> extends ConcurrentMap<K, V
      * @param key key with which the specified value is associated
      * @param oldValue value expected to be associated with the specified key
      * @param newValue value to be associated with the specified key
-     * @param evictMs the time in ms during which the entry can stay in the map (time-to-live); when
-     * this time has elapsed, the entry will be evicted from the map automatically
+     * @param evictMs the time in ms during which the entry can stay in the map (time-to-live). When
+     * this time has elapsed, the entry will be evicted from the map automatically. A value of 0 for
+     * this argument means "forever", i.e. <tt>replace(key, oldValue, newValue, 0)</tt> is
+     * equivalent to <tt>put(key, oldValue, newValue).
      * @return <tt>true</tt> if the value was replaced
      * @throws UnsupportedOperationException if the <tt>put</tt> operation is not supported by this
      * map

@@ -5,7 +5,18 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import java.util.Map.Entry;
 
-class EvictibleEntry<K, V> implements Entry<K, V> {
+/**
+ * An evictible map {@link java.util.Map.Entry} used by
+ * {@link ConcurrentMapWithTimedEvictionDecorator} and other interfaces and classes in this package.
+ * Besides the key and the value, the entry has additional properties such as its map, eviction
+ * time, and custom data, as well as additional helper methods.
+ * 
+ * @author Stoyan Rachev
+ * @param <K> the type of keys maintained by the map
+ * @param <V> the type of mapped values
+ */
+public class EvictibleEntry<K, V> implements Entry<K, V> {
+
     private final ConcurrentMapWithTimedEvictionDecorator<K, V> map;
     private final K key;
     private volatile V value;
@@ -14,9 +25,8 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     private final long evictionTime;
     private volatile Object data;
 
-    public EvictibleEntry(ConcurrentMapWithTimedEvictionDecorator<K, V> map, K key, V value,
-        long evictMs) {
-        assert (map != null);
+    EvictibleEntry(ConcurrentMapWithTimedEvictionDecorator<K, V> map, K key, V value, long evictMs) {
+        assert (map == null);
         if (evictMs < 0)
             throw new IllegalArgumentException();
         this.map = map;
