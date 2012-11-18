@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 class EvictibleEntry<K, V> implements Entry<K, V> {
     private final ConcurrentMapWithTimedEvictionDecorator<K, V> map;
     private final K key;
-    private V value;
+    private volatile V value;
     private final long evictMs;
     private final boolean evictible;
     private final long evictionTime;
@@ -24,11 +24,8 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
         this.value = value;
         this.evictMs = evictMs;
         this.evictible = (evictMs > 0);
-        this.evictionTime = (evictible) ? now() + NANOSECONDS.convert(evictMs, MILLISECONDS) : 0;
-    }
-
-    public ConcurrentMapWithTimedEvictionDecorator<K, V> getMap() {
-        return map;
+        this.evictionTime = (evictible) ? System.nanoTime()
+            + NANOSECONDS.convert(evictMs, MILLISECONDS) : 0;
     }
 
     @Override
@@ -65,7 +62,7 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     }
 
     public boolean shouldEvict() {
-        return (evictible) ? (now() > evictionTime) : false;
+        return (evictible) ? (System.nanoTime() > evictionTime) : false;
     }
 
     public void evict(boolean cancelPendingEviction) {
@@ -76,10 +73,6 @@ class EvictibleEntry<K, V> implements Entry<K, V> {
     public String toString() {
         return String.format("[%s, %s, %d]", (key != null) ? key : "null", (value != null) ? value
             : "null", evictMs);
-    }
-
-    public static long now() {
-        return System.nanoTime();
     }
 
 }

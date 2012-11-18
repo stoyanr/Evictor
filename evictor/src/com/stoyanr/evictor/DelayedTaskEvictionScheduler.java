@@ -11,7 +11,8 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
     public static final int DEFAULT_THREAD_POOL_SIZE = 1;
 
     private final ScheduledExecutorService ses;
-    private ScheduledFuture<?> future = null;
+    private volatile ScheduledFuture<?> future = null;
+    private volatile long next = 0;
 
     public DelayedTaskEvictionScheduler() {
         this(new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE));
@@ -40,58 +41,34 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 
     @Override
     protected void onScheduleEviction(EvictibleEntry<K, V> e) {
-        if (hasScheduledEvictions()) {
-            scheduleTask(e.getEvictionTime());
+        if (getNextEvictionTime() != next) {
+            scheduleTask();
         }
     }
 
     @Override
     protected void onCancelEviction(EvictibleEntry<K, V> e) {
-        if (!hasScheduledEvictions()) {
-            cancelTask();
-        } else {
-            scheduleTaskOnCancel(e.getEvictionTime());
+        if (getNextEvictionTime() != next) {
+            scheduleTask();
         }
     }
 
     @Override
     protected void onEvictEntries() {
-        if (hasScheduledEvictions()) {
-            future = scheduleAt(getNextEvictionTime());
-        } else {
-            future = null;
-        }
+        schedule();
     }
 
-    private synchronized void scheduleTask(long time) {
-        if (future == null) {
-            future = scheduleAt(time);
-        } else if (getNextEvictionTime() == time) {
-            future.cancel(false);
-            future = scheduleAt(time);
-        }
-    }
-
-    private synchronized void scheduleTaskOnCancel(long time) {
-        if (future != null) {
-            long next = getNextEvictionTime();
-            if (next > time) {
-                future.cancel(false);
-                future = scheduleAt(next);
-            }
-        }
-    }
-
-    private synchronized void cancelTask() {
+    private synchronized void scheduleTask() {
         if (future != null) {
             future.cancel(false);
-            future = null;
         }
+        schedule();
     }
 
-    private ScheduledFuture<?> scheduleAt(long time) {
-        return (time > 0) ? ses.schedule(new EvictionRunnable(),
-            Math.max(time - System.nanoTime(), 0), NANOSECONDS) : null;
+    private synchronized void schedule() {
+        next = getNextEvictionTime();
+        future = (next > 0) ? ses.schedule(new EvictionRunnable(),
+            Math.max(next - System.nanoTime(), 0), NANOSECONDS) : null;
     }
 
 }

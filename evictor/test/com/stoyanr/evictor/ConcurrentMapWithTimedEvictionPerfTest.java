@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -19,7 +20,7 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
 
     private static final int NUM_THREADS = 100;
     private static final int NUM_ITERATIONS = 20000;
-    private static final int EVICT_MS = 100 * 1000;
+    private static final int EVICT_MS = 10 * 1000;
 
     @Parameters
     public static Collection<Object[]> data() {
@@ -60,6 +61,7 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
     public void tearDownIteration() {
     }
 
+    @Ignore
     @Test
     public void testGet() throws Exception {
         populateMap(map);
@@ -71,6 +73,7 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
         });
     }
 
+    @Ignore
     @Test
     public void testGetWithEviction() throws Exception {
         if (!(map instanceof ConcurrentMapWithTimedEviction))
@@ -104,6 +107,23 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
             @Override
             public void test(int id) throws InterruptedException {
                 mapx.put(id, getValue(id), getRandomEvictMs());
+            }
+        });
+    }
+
+    @Test
+    public void testGetAndPutWithEviction() throws Exception {
+        if (!(map instanceof ConcurrentMapWithTimedEviction))
+            return;
+        final ConcurrentMapWithTimedEviction<Integer, String> mapx = (ConcurrentMapWithTimedEviction<Integer, String>) map;
+        run("testGetAndPutWithEviction", new TestTask() {
+            @Override
+            public void test(int id) throws InterruptedException {
+                if (id % 2 == 0) {
+                    mapx.put(id, getValue(id), getRandomEvictMs());
+                } else {
+                    mapx.get(MAX_MAP_SIZE - id - 1);
+                }
             }
         });
     }

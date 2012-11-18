@@ -1,5 +1,6 @@
 package com.stoyanr.evictor;
 
+import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.junit.Assert.assertTrue;
@@ -9,12 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import com.stoyanr.evictor.ConcurrentHashMapWithTimedEviction;
-import com.stoyanr.evictor.EvictionScheduler;
-import com.stoyanr.evictor.ExecutorServiceEvictionScheduler;
-import com.stoyanr.evictor.NullEvictionScheduler;
-import com.stoyanr.evictor.RegularTaskEvictionScheduler;
 
 public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
@@ -93,7 +88,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
             scheduler = new ExecutorServiceEvictionScheduler<>(evictionExecutor);
             break;
         case IMPL_CHMWTE_NM_RT:
-            scheduler = new RegularTaskEvictionScheduler<>(evictionExecutor);
+            scheduler = new RegularTaskEvictionScheduler<>(evictionExecutor, 750, MICROSECONDS);
             break;
         case IMPL_CHMWTE_NM_DT:
             scheduler = new DelayedTaskEvictionScheduler<>(evictionExecutor);
