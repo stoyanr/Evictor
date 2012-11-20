@@ -37,9 +37,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
      * @throws NullPointerException if the value is null
      * @throws IllegalArgumentException if evictMs is negative
      */
-    public EvictibleEntry(ConcurrentMapWithTimedEvictionDecorator<K, V> map, K key, V value,
-        long evictMs) {
-        assert (map != null);
+    EvictibleEntry(ConcurrentMapWithTimedEvictionDecorator<K, V> map, K key, V value, long evictMs) {
         if (value == null)
             throw new NullPointerException();
         if (evictMs < 0)
@@ -154,8 +152,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 
     @Override
     public String toString() {
-        return String.format("[%s, %s, %d]", (key != null) ? key : "null", (value != null) ? value
-            : "null", evictMs);
+        return String.format("[%s, %s, %d]", (key != null) ? key : "null", value, evictMs);
     }
 
 }

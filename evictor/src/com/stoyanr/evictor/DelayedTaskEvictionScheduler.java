@@ -26,7 +26,7 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
     private volatile long next = 0;
 
     /**
-     * Creates an eviction scheduler with the default queue implementation and (see
+     * Creates a delayed task eviction scheduler with the default queue implementation (see
      * {@link AbstractQueueEvictionScheduler}) and a
      * {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
      */
@@ -35,29 +35,42 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
     }
 
     /**
-     * Creates an eviction scheduler with the default queue implementation and (see
-     * {@link AbstractQueueEvictionScheduler}) and the specified executor service.
+     * Creates a delayed task eviction scheduler with the default queue implementation (see
+     * {@link AbstractQueueEvictionScheduler}) and the specified scheduled executor service.
+     * 
+     * @param ses the scheduled executor service to be used
+     * @throws NullPointerException if the scheduled executor service is null
      */
     public DelayedTaskEvictionScheduler(ScheduledExecutorService ses) {
         super();
-        assert (ses != null);
+        if (ses == null)
+            throw new NullPointerException();
         this.ses = ses;
     }
 
     /**
-     * Creates an eviction scheduler with the specified queue and a
+     * Creates a delayed task eviction scheduler with the specified queue and a
      * {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
+     * 
+     * @param queue the queue to be used
+     * @throws NullPointerException if the queue is null
      */
     public DelayedTaskEvictionScheduler(EvictionQueue<K, V> queue) {
         this(queue, new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE));
     }
 
     /**
-     * Creates an eviction scheduler with the specified queue and executor service.
+     * Creates a delayed task eviction scheduler with the specified queue and scheduled executor
+     * service.
+     * 
+     * @param queue the queue to be used
+     * @param ses the scheduled executor service to be used
+     * @throws NullPointerException if either the queue or the scheduled executor service is null
      */
     public DelayedTaskEvictionScheduler(EvictionQueue<K, V> queue, ScheduledExecutorService ses) {
         super(queue);
-        assert (ses != null);
+        if (ses == null)
+            throw new NullPointerException();
         this.ses = ses;
     }
 
@@ -65,7 +78,8 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
      * {@inheritDoc}
      * 
      * <p>
-     * This implementation simply invokes the <tt>shutdownNow</tt> method on the executor service.
+     * This implementation simply invokes the <tt>shutdownNow</tt> method on the scheduled executor
+     * service.
      */
     @Override
     public void shutdown() {
@@ -78,6 +92,8 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
      * <p>
      * This implementation checks if the current next eviction time is different from the last next
      * eviction time, and if so (re)schedules the task.
+     * 
+     * @throws RejectedExecutionException if the task cannot be scheduled for execution
      */
     @Override
     protected void onScheduleEviction(EvictibleEntry<K, V> e) {
@@ -92,6 +108,8 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
      * <p>
      * This implementation checks if the current next eviction time is different from the last next
      * eviction time, and if so (re)schedules the task.
+     * 
+     * @throws RejectedExecutionException if the task cannot be scheduled for execution
      */
     @Override
     protected void onCancelEviction(EvictibleEntry<K, V> e) {
@@ -105,12 +123,17 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
      * 
      * <p>
      * This implementation simply always schedules the task.
+     * 
+     * @throws RejectedExecutionException if the task cannot be scheduled for execution
      */
     @Override
     protected void onEvictEntries() {
         schedule();
     }
 
+    /*
+     * (Re)schedules the task atomically. This method is synchronized to ensure atomicity.
+     */
     private synchronized void scheduleTask() {
         // Cancel the task if already scheduled, then call schedule() to schedule a new task.
         if (future != null) {
@@ -119,6 +142,11 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
         schedule();
     }
 
+    /*
+     * Schedules the task atomically. This method is synchronized to ensure atomicity. The next
+     * eviction time is always queried within this synchronized method and not passed as parameter
+     * to ensure consistency in a concurrent environment.
+     */
     private synchronized void schedule() {
         // Get the next eviction time and reschedule the task with a delay corresponding to the
         // difference between this time and the current time. If the next eviction time is 0 

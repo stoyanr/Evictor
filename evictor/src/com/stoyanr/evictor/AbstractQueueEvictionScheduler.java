@@ -22,10 +22,14 @@ public abstract class AbstractQueueEvictionScheduler<K, V> implements EvictionSc
 
     /**
      * Creates an eviction scheduler with the specified queue.
+     * 
+     * @param queue the queue to be used
+     * @throws NullPointerExceptin if the queue is null
      */
     public AbstractQueueEvictionScheduler(EvictionQueue<K, V> queue) {
         super();
-        assert (queue != null);
+        if (queue == null)
+            throw new NullPointerException();
         this.queue = queue;
     }
 
@@ -34,7 +38,6 @@ public abstract class AbstractQueueEvictionScheduler<K, V> implements EvictionSc
      */
     @Override
     public void scheduleEviction(EvictibleEntry<K, V> e) {
-        assert (e != null);
         if (e.isEvictible()) {
             queue.putEntry(e);
             onScheduleEviction(e);
@@ -46,7 +49,6 @@ public abstract class AbstractQueueEvictionScheduler<K, V> implements EvictionSc
      */
     @Override
     public void cancelEviction(EvictibleEntry<K, V> e) {
-        assert (e != null);
         if (e.isEvictible()) {
             queue.removeEntry(e);
             onCancelEviction(e);

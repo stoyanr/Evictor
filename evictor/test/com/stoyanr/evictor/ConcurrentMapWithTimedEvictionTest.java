@@ -30,7 +30,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
 
     private static final int NUM_ITERATIONS = 10;
     private static final int EVICT_MS = 8;
-    private static final int DELAY_MS = 5;
+    private static final int DELAY_MS = 10;
 
     @Parameters
     public static Collection<Object[]> data() {
