@@ -12,6 +12,10 @@ import java.util.concurrent.ConcurrentMap;
  * {@link EvictionScheduler} for automatically evicting entries upon expiration.
  * 
  * <p>
+ * This class does <em>not</em> allow <tt>null</tt> to be used as a value. Whether or not
+ * <tt>null</tt> can be used as a key depends on the map being decorated.
+ * 
+ * <p>
  * This class and its views and iterators implement all of the <em>optional</em> methods of the
  * {@link java.util.Map} and {@link java.util.Iterator} interfaces.
  * 
@@ -88,11 +92,12 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * @return <tt>true</tt> if this map maps one or more keys to the specified value and at least
      * one of them has not expired yet.
      * @throws ClassCastException if the value is of an inappropriate type for this map
-     * @throws NullPointerException if the specified value is null and the delegate map does not
-     * permit null values
+     * @throws NullPointerException if the specified value is null
      */
     @Override
     public boolean containsValue(Object value) {
+        if (value == null)
+            throw new NullPointerException();
         for (EvictibleEntry<K, V> e : delegate.values()) {
             if (e.getValue().equals(value)) {
                 if (evictIfExpired(e)) {
@@ -141,8 +146,8 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * delegate map
      * @throws ClassCastException if the class of the specified key or value prevents it from being
      * stored in this map
-     * @throws NullPointerException if the specified key or value is null and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      * @throws IllegalArgumentException if some property of the specified key or value prevents it
      * from being stored in this map
      */
@@ -171,8 +176,8 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * delegate map
      * @throws ClassCastException if the class of the specified key or value prevents it from being
      * stored in this map
-     * @throws NullPointerException if the specified key or value is null and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      * @throws IllegalArgumentException if some property of the specified key or value prevents it
      * from being stored in this map, or if evictMs is negative
      */
@@ -210,8 +215,8 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * delegate map
      * @throws ClassCastException if the class of the specified key or value prevents it from being
      * stored in this map
-     * @throws NullPointerException if the specified key or value is null, and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      * @throws IllegalArgumentException if some property of the specified key or value prevents it
      * from being stored in this map
      * 
@@ -247,8 +252,8 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * delegate map
      * @throws ClassCastException if the class of the specified key or value prevents it from being
      * stored in this map
-     * @throws NullPointerException if the specified key or value is null, and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      * @throws IllegalArgumentException if some property of the specified key or value prevents it
      * from being stored in this map, or if evictMs is negative
      */
@@ -325,11 +330,13 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * @throws UnsupportedOperationException if the <tt>remove</tt> operation is not supported by
      * the delegate map
      * @throws ClassCastException if the key or value is of an inappropriate type for this map
-     * @throws NullPointerException if the specified key or value is null, and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      */
     @Override
     public boolean remove(Object key, Object value) {
+        if (value == null)
+            throw new NullPointerException();
         EvictibleEntry<K, V> oe = delegate.get(key);
         if ((oe == null) || evictIfExpired(oe) || !oe.getValue().equals(value)) {
             return false;
@@ -362,8 +369,8 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * delegate map
      * @throws ClassCastException if the class of the specified key or value prevents it from being
      * stored in this map
-     * @throws NullPointerException if the specified key or value is null, and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      * @throws IllegalArgumentException if some property of the specified key or value prevents it
      * from being stored in this map
      */
@@ -398,8 +405,8 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * delegate map
      * @throws ClassCastException if the class of the specified key or value prevents it from being
      * stored in this map
-     * @throws NullPointerException if the specified key or value is null, and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      * @throws IllegalArgumentException if some property of the specified key or value prevents it
      * from being stored in this map, or if evictMs is negative
      */
@@ -444,8 +451,8 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * delegate map
      * @throws ClassCastException if the class of a specified key or value prevents it from being
      * stored in this map
-     * @throws NullPointerException if a specified key or value is null, and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      * @throws IllegalArgumentException if some property of a specified key or value prevents it
      * from being stored in this map
      */
@@ -480,13 +487,15 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * delegate map
      * @throws ClassCastException if the class of a specified key or value prevents it from being
      * stored in this map
-     * @throws NullPointerException if a specified key or value is null, and the delegate map does
-     * not permit null keys or values
+     * @throws NullPointerException if the specified key is null and the delegate map does not
+     * permit null keys, or if the specified value is null
      * @throws IllegalArgumentException if some property of a specified key or value prevents it
      * from being stored in this map, or if evictMs is negative
      */
     @Override
     public boolean replace(K key, V oldValue, V newValue, long evictMs) {
+        if (oldValue == null)
+            throw new NullPointerException();
         // Avoid replacing an expired entry
         EvictibleEntry<K, V> oe = delegate.get(key);
         if ((oe == null) || evictIfExpired(oe) || !oldValue.equals(oe.getValue())) {
