@@ -1,0 +1,69 @@
+<h1 id="overview">Overview</h1>
+<p><strong>Evictor</strong> is a Java library providing a composable implementation of <code>java.util.concurrent.ConcurrentMap</code> that supports timed entry eviction.</p>
+<p>The central abstraction is the interface <code>ConcurrentMapWithTimedEviction</code> extends <code>ConcurrentMap</code> by adding the following four methods:</p>
+<pre><code>V put(K key, V value, long evictMs);
+V putIfAbsent(K key, V value, long evictMs);
+V replace(K key, V value, long evictMs);
+boolean replace(K key, V oldValue, V newValue, long evictMs);</code></pre>
+<p>In the above methods, <code>evictMs</code> is the time in milliseconds during which the entry can stay in the map (time-to-live). When this time has elapsed, the entry will be evicted from the map automatically. A value of 0 means &quot;forever&quot;.</p>
+<p>There is a single implementation of this interface, <code>ConcurrentMapWithTimedEvictionDecorator</code>, which decorates an existing <code>ConcurrentMap</code> implementation, and one convenient subclass, <code>ConcurrentHashMapWithTimedEviction</code> which conforms to the <code>ConcurrentHashMap</code> specification and is easier to use than its superclass if a <code>ConcurrentHashMap</code> is what you want. These two classes can be customized with different <em>eviction schedulers</em>, which is an abstraction for the actual mechanism to automatically evict entries upon expiration. In addition, some of the schdulers are based on a priority queue and can be additionally customized by using different priority queue implementations.</p>
+<p>The library has the following features:</p>
+<ul>
+<li><strong>Ease of use</strong> - just use the default <code>ConcurrentHashMapWithTimedEviction</code> constructor if you don't care about the details.</li>
+<li><strong>Extreme composability</strong> - if you do care about the details, you can supply your own <code>ConcurrentMap</code> implementation, choose among the 4 available <code>EvictionScheduler</code> implementations (or supply your own), and among the 2 available <code>EvictionQueue</code> implementations (or supply your own) to create a map which has an even higher performance or is tuned to your needs.</li>
+<li><strong>Thread safety</strong> - all classes are safe to use in a concurrent environment</li>
+<li><strong>High performance</strong> - the library makes minimal use of locking and provides several optimized eviction strategies</li>
+<li><strong>Detailed documentation</strong> - there are very comprehensive Javadoc, class diagram, and README</li>
+<li><strong>Clean code</strong> - if you need to read the code, you are welcome, it does &quot;read like a well-written prose&quot;</li>
+</ul>
+<h1 id="basic-usage">Basic Usage</h1>
+<h2 id="creating-a-concurrenthashmap">Creating a ConcurrentHashMap</h2>
+<p>To create a new concurrent hash map with timed entry eviction which conforms to the <code>ConcurrentHashMap</code> specification, you can use the class <code>ConcurrentHashMapWithTimedEviction</code>. You can create instances of this class using either its default constructor, which supplies default values for all arguments, or one of its overloaded constructors:</p>
+<pre><code>// Create hash map with default initial capacity, load factor, number of threads, and eviction scheduler
+// An instance of SingleThreadEvictionScheduler is used in this case
+ConcurrentMapWithTimedEviction&lt;Integer, String&gt; map = new ConcurrentHashMapWithTimedEviction&lt;&gt;();
+
+// Create delayed task eviction scheduler
+EvictionScheduler&lt;Integer, String&gt; scheduler = new DelayedTaskEvictionScheduler&lt;&gt;();
+// Create hash map with default initial capacity, load factor, and concurrency level, 
+// and the previously created scheduler
+ConcurrentMapWithTimedEviction&lt;Integer, String&gt; map = new ConcurrentHashMapWithTimedEviction&lt;&gt;(scheduler);
+
+// Create regular task eviction scheduler with a delay of 750 microseconds
+EvictionScheduler&lt;Integer, String&gt; scheduler = new RegularTaskEvictionScheduler&lt;&gt;(750, TimeUnit.MICROSECONDS);
+// Create hash map with the specified initial capacity, load factor, and concurrency level, 
+// and the previously created scheduler
+ConcurrentMapWithTimedEviction&lt;Integer, String&gt; map = new ConcurrentHashMapWithTimedEviction&lt;&gt;(100, 0.75f, 8, scheduler);</code></pre>
+<h2 id="decorating-a-custom-concurrentmap-implementation">Decorating a Custom ConcurrentMap Implementation</h2>
+<p>The class <code>ConcurrentHashMapWithTimedEviction</code> inherits from <code>ConcurrentMapWithTimedEvictionDecorator</code> and supplies a <code>ConcurrentHashMap</code> as a delegate. If you would like to pass a different <code>ConcurrentMap</code> implementation, you could use the <code>ConcurrentMapWithTimedEvictionDecorator</code> class directlry. For example, here is how you could use Google Guava to create the underlying map:</p>
+<pre><code>// Create a concurrent hash map with Guava
+ConcurrentMap&lt;Integer, EvictibleEntry&lt;Integer, String&gt;&gt; delegate = new MapMaker().makeMap();
+// Create a map with a SingleThreadEvictionScheduler
+EvictionScheduler&lt;Integer, String&gt; scheduler = new SingleThreadEvictionScheduler&lt;&gt;();
+ConcurrentMapWithTimedEviction&lt;Integer, String&gt; map = new ConcurrentMapWithTimedEvictionDecorator&lt;&gt;(delegate, scheduler);</code></pre>
+<h2 id="eviction-schedulers">Eviction Schedulers</h2>
+<p>There are four different types of eviction schedulers that can be used with <code>ConcurrentMapWithTimedEvictionDecorator</code> and its subclass <code>ConcurrentHashMapWithTimedEviction</code>:</p>
+<ul>
+<li><code>ExecutorServiceEvictionScheduler</code> uses a <code>java.util.concurrent.ScheduledExecutorService</code> to schedule multiple tasks for entries that should be evicted, one task per entry.</li>
+<li><code>RegularTaskEvictionScheduler</code> uses a priority queue to store entries in the order in which they should be evicted, and a regular task scheduled with a fixed delay in an <code>ScheduledExecutorService</code> to manage the automated eviction.</li>
+<li><code>DelayedTaskEvictionScheduler</code> is also based on a priority queue, and uses a single delayed task scheduled in an <code>ScheduledExecutorService</code> to manage the automated eviction. The task is rescheduled appropriately each time an entry is added or removed from the queue to ensure that it will always fire at the time of the next scheduled eviction, not sooner or later.</li>
+<li><code>SingleThreadEvictionScheduler</code> is also based on a priority queue, and uses a single thread to manage the automated eviction. The behavior is similar to that of <code>DelayedTaskEvictionScheduler</code>, but it is implemented at a lower level, using a specially crafted thread rather than a scheduled executor service.</li>
+</ul>
+<p>For all schedulers that use <code>ScheduledExecutorService</code> (the first three), you can pass an implementation upon construction. If you don't pass anything, an instance of <code>java.util.concurrent.ScheduledThreadPoolExecutor</code> with 1 thread is created and used. Similarly, for all queue-based schedulers (the last three), you can pass the queue upon construction, and an instance of <code>NavigableMapEvictionQueue</code> is used as a default.</p>
+<p>Regarding performance, under heavy contention the last three priority queue-based schedulers (with their default queues) tend to outperform the first one by a factor of two or three, especially regarding <code>put</code> performance. These three schedulers have roughly equal performance characteristics, which also depend on the actual map usage.</p>
+<p>Note that you can create a single eviction scheduler and use it with multiple maps.</p>
+<h2 id="eviction-queues">Eviction Queues</h2>
+<p>There are two different types of eviction queues that can be used with the three queue-based eviction schedulers described above:</p>
+<ul>
+<li><code>NavigableMapEvictionQueue</code> uses a <code>java.util.concurrent.ConcurrentNavigableMap</code> to store its entries. The key in the map is the eviction time of the entry, and the value is the entry itself.</li>
+<li><code>PriorityEvictionQueue</code> uses a <code>java.util.Queue</code> to store its entries. The queue should support priority queue semantics and be thread-safe.</li>
+</ul>
+<p>For both queue types, the actual navigable map or queue implementation can be passed upon construction. By default, <code>NavigableMapEvictionQueue</code> uses an instance of <code>java.util.concurrent.ConcurrentSkipListMap</code>, and <code>PriorityEvictionQueue</code> uses an instance of <code>java.util.concurrent.PriorityBlockingQueue</code>.</p>
+<p>Regarding performance, <code>NavigableMapEvictionQueue</code> with its default map significantly outperforms <code>PriorityEvictionQueue</code> with its default queue. Therefore, all three schedulers mentioned above use <code>NavigableMapEvictionQueue</code> by default. Normally, you would not need to change this, unless you have a priority queue implementation which can outpeform <code>java.util.concurrent.ConcurrentSkipListMap</code> in a concurrent environment. In this case, you could implement the <code>EvictionQueue</code> interface yourself and pass it to the appropriate scheduler.</p>
+<h1 id="design">Design</h1>
+<p>For a more comprehensive overview of the library design, see the provided class diagram:</p>
+<div class="figure">
+<img src="design/design.png" title="Design" alt="Design" /><p class="caption">Design</p>
+</div>
+<h1 id="testing">Testing</h1>
+<h1 id="performance">Performance</h1>

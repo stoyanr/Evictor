@@ -42,6 +42,20 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 
     /**
      * Creates a regular task eviction scheduler with the default queue implementation (see
+     * {@link AbstractQueueEvictionScheduler}), a
+     * {@link java.util.concurrent.ScheduledThreadPoolExecutor}, and the specified delay.
+     * 
+     * @param delay the delay between the termination of one execution and the commencement of the
+     * next
+     * @param timeUnit the time unit of the delay parameter
+     * @throws IllegalArgumentException if delay is less than or equal to zero
+     */
+    public RegularTaskEvictionScheduler(long delay, TimeUnit timeUnit) {
+        this(new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE), delay, timeUnit);
+    }
+
+    /**
+     * Creates a regular task eviction scheduler with the default queue implementation (see
      * {@link AbstractQueueEvictionScheduler}) and the specified scheduled executor service and
      * delay.
      * 
