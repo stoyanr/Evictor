@@ -10,6 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
@@ -25,6 +29,8 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
     public static final int RESULT_ASSERTION_FAILED = -2;
 
     public static final int IMPL_CHM = 0;
+    public static final int IMPL_GUAVA_CACHE = -1; // Guava cache
+    public static final int IMPL_GUAVA_CACHE_E = -2; // Evicting Guava cache 
     public static final int IMPL_CHMWTE_NULL = 1; // Null
     public static final int IMPL_CHMWTE_ESS = 2; // ExecutionService
     public static final int IMPL_CHMWTE_NM_RT = 3; // RegularTask with NavigableMap
@@ -110,6 +116,15 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         switch (impl) {
         case IMPL_CHM:
             map = new ConcurrentHashMap<Integer, String>(capacity, LOAD_FACTOR, numThreads);
+            break;
+        case IMPL_GUAVA_CACHE:
+            Cache<Integer, String> cache = CacheBuilder.newBuilder().build();
+            map = cache.asMap();
+            break;
+        case IMPL_GUAVA_CACHE_E:
+            Cache<Integer, String> cachex = CacheBuilder.newBuilder()
+                .expireAfterWrite(evictMs, TimeUnit.MILLISECONDS).build();
+            map = cachex.asMap();
             break;
         case IMPL_CHMWTE_NULL:
         case IMPL_CHMWTE_ESS:

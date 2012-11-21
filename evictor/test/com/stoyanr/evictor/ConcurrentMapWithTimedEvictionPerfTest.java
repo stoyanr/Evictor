@@ -20,13 +20,15 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
 
     private static final int NUM_THREADS = 100;
     private static final int NUM_ITERATIONS = 20000;
-    private static final int EVICT_MS = 10 * 1000;
+    private static final int EVICT_MS = 1 * 1000;
 
     @Parameters
     public static Collection<Object[]> data() {
         // @formatter:off
         return Arrays.asList(new Object[][] {
             { IMPL_CHM }, 
+            { IMPL_GUAVA_CACHE }, 
+            { IMPL_GUAVA_CACHE_E }, 
             { IMPL_CHMWTE_NULL }, 
             { IMPL_CHMWTE_ESS }, 
             { IMPL_CHMWTE_NM_RT },
@@ -61,7 +63,6 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
     public void tearDownIteration() {
     }
 
-    @Ignore
     @Test
     public void testGet() throws Exception {
         populateMap(map);
@@ -73,7 +74,6 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
         });
     }
 
-    @Ignore
     @Test
     public void testGetWithEviction() throws Exception {
         if (!(map instanceof ConcurrentMapWithTimedEviction))
@@ -106,11 +106,12 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
         run("testPutWithEviction", new TestTask() {
             @Override
             public void test(int id) throws InterruptedException {
-                mapx.put(id, getValue(id), getRandomEvictMs());
+                mapx.put(id, getValue(id), getEvictMs());
             }
         });
     }
 
+    @Ignore
     @Test
     public void testGetAndPutWithEviction() throws Exception {
         if (!(map instanceof ConcurrentMapWithTimedEviction))
@@ -120,7 +121,7 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
             @Override
             public void test(int id) throws InterruptedException {
                 if (id % 2 == 0) {
-                    mapx.put(id, getValue(id), getRandomEvictMs());
+                    mapx.put(id, getValue(id), getEvictMs());
                 } else {
                     mapx.get(MAX_MAP_SIZE - id - 1);
                 }
@@ -141,13 +142,14 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
         for (int i = 0; i < numThreads; i++) {
             for (int j = 0; j < numIterations; j++) {
                 int id = getIterationId(i, j);
-                map.put(id, getValue(id), getRandomEvictMs());
+                map.put(id, getValue(id), getEvictMs());
             }
         }
     }
 
-    private long getRandomEvictMs() {
-        return (long) (Math.random() * evictMs);
+    private long getEvictMs() {
+//        return (long) (Math.random() * evictMs);
+        return evictMs;
     }
 
 }

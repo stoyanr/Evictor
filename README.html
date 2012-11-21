@@ -1,6 +1,6 @@
 <h1 id="overview">Overview</h1>
 <p><strong>Evictor</strong> is a Java library providing a composable implementation of <code>java.util.concurrent.ConcurrentMap</code> that supports timed entry eviction.</p>
-<p>The central abstraction is the interface <code>ConcurrentMapWithTimedEviction</code> extends <code>ConcurrentMap</code> by adding the following four methods:</p>
+<p>The central abstraction is the interface <code>ConcurrentMapWithTimedEviction</code>, which extends <code>ConcurrentMap</code> by adding the following four methods:</p>
 <pre><code>V put(K key, V value, long evictMs);
 V putIfAbsent(K key, V value, long evictMs);
 V replace(K key, V value, long evictMs);
@@ -12,7 +12,7 @@ boolean replace(K key, V oldValue, V newValue, long evictMs);</code></pre>
 <li><strong>Ease of use</strong> - just use the default <code>ConcurrentHashMapWithTimedEviction</code> constructor if you don't care about the details.</li>
 <li><strong>Extreme composability</strong> - if you do care about the details, you can supply your own <code>ConcurrentMap</code> implementation, choose among the 4 available <code>EvictionScheduler</code> implementations (or supply your own), and among the 2 available <code>EvictionQueue</code> implementations (or supply your own) to create a map which has an even higher performance or is tuned to your needs.</li>
 <li><strong>Thread safety</strong> - all classes are safe to use in a concurrent environment</li>
-<li><strong>High performance</strong> - the library makes minimal use of locking and provides several optimized eviction strategies</li>
+<li><strong>High performance</strong> - higher performance than common alternatives such as <a href="http://code.google.com/p/guava-libraries/">Goolge Guava</a> by minimal use of locking and optimized eviction implementations</li>
 <li><strong>Detailed documentation</strong> - there are very comprehensive Javadoc, class diagram, and README</li>
 <li><strong>Clean code</strong> - if you need to read the code, you are welcome, it does &quot;read like a well-written prose&quot;</li>
 </ul>
@@ -63,7 +63,54 @@ ConcurrentMapWithTimedEviction&lt;Integer, String&gt; map = new ConcurrentMapWit
 <h1 id="design">Design</h1>
 <p>For a more comprehensive overview of the library design, see the provided class diagram:</p>
 <div class="figure">
-<img src="design/design.png" title="Design" alt="Design" /><p class="caption">Design</p>
+<img src="design/design.png" alt="Design" /><p class="caption">Design</p>
 </div>
-<h1 id="testing">Testing</h1>
+<h1 id="tests">Tests</h1>
+<p>There are three test classes provided with the library:</p>
+<ul>
+<li><code>ConcurrentMapWithTimedEvictionTest</code> tests the functional correctness of the different <code>ConcurrentMapWithTimedEviction</code> implementations in single-threaded and multi-threaded environment.</li>
+<li><code>ConcurrentMapWithTimedEvictionAccuracyTest</code> tests the <em>accuracy</em> of the different eviction schedulers, i.e. how close are the actual eviction times to the times specified via the <code>evictMs</code> parameter. Here, an average accuracy of 400-500 microseconds is considered optimal. With some schedulers (for example <code>RegularTaskEvictionScheduler</code>), you can supply a parameter upon construction which lowers their accuracy, effectively trading it for performance.</li>
+<li><code>ConcurrentMapWithTimedEvictionAccuracyPerfTest</code> tests the performance of the different <code>ConcurrentMapWithTimedEviction</code> implementations under an artificially heavy load (100 threads performing 2,000,000 operations on 1,000,000 entries)</li>
+</ul>
 <h1 id="performance">Performance</h1>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Implementation</th>
+<th align="right">Get (us)</th>
+<th align="right">Put (us)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>ConcurrentHashMap</code> (JDK, non-evicting)</td>
+<td align="right">0.5</td>
+<td align="right">20 - 30</td>
+</tr>
+<tr class="even">
+<td align="left"><code>Cache</code> (Guava, evicting)</td>
+<td align="right">0.5 - 5</td>
+<td align="right">80 - 90</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>ConcurrentHashMapWithTimedEviction</code> with <code>ExecutorServiceEvictionScheduler</code></td>
+<td align="right">0.5 - 5</td>
+<td align="right">250 - 400</td>
+</tr>
+<tr class="even">
+<td align="left"><code>ConcurrentHashMapWithTimedEviction</code> with <code>RegularTaskEvictionScheduler</code></td>
+<td align="right">0.5 - 5</td>
+<td align="right">25 - 80</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>ConcurrentHashMapWithTimedEviction</code> with <code>DelayedTaskEvictionScheduler</code></td>
+<td align="right">0.5 - 5</td>
+<td align="right">25 - 40</td>
+</tr>
+<tr class="even">
+<td align="left"><code>ConcurrentHashMapWithTimedEviction</code> with <code>SingleThreadEvictionScheduler</code></td>
+<td align="right">0.5 - 5</td>
+<td align="right">20 - 60</td>
+</tr>
+</tbody>
+</table>

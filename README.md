@@ -18,12 +18,12 @@ There is a single implementation of this interface, `ConcurrentMapWithTimedEvict
 
 The library has the following features:
 
-* **Ease of use** - just use the default `ConcurrentHashMapWithTimedEviction` constructor if you don't care about the details.
-* **Extreme composability** - if you do care about the details, you can supply your own `ConcurrentMap` implementation, choose among the 4 available `EvictionScheduler` implementations (or supply your own), and among the 2 available `EvictionQueue` implementations (or supply your own) to create a map which has an even higher performance or is tuned to your needs.
-* **Thread safety** - all classes are safe to use in a concurrent environment
-* **High performance** - the library makes minimal use of locking and provides several optimized eviction strategies
-* **Detailed documentation** - there are very comprehensive Javadoc, class diagram, and README
-* **Clean code** - if you need to read the code, you are welcome, it does "read like a well-written prose"
++ **Ease of use** - just use the default `ConcurrentHashMapWithTimedEviction` constructor if you don't care about the details.
++ **Extreme composability** - if you do care about the details, you can supply your own `ConcurrentMap` implementation, choose among the 4 available `EvictionScheduler` implementations (or supply your own), and among the 2 available `EvictionQueue` implementations (or supply your own) to create a map which has an even higher performance or is tuned to your needs.
++ **Thread safety** - all classes are safe to use in a concurrent environment
++ **High performance** - higher performance than common alternatives such as [Goolge Guava](http://code.google.com/p/guava-libraries/) by minimal use of locking and optimized eviction implementations
++ **Detailed documentation** - there are very comprehensive Javadoc, class diagram, and README
++ **Clean code** - if you need to read the code, you are welcome, it does "read like a well-written prose"
 
 Basic Usage
 ===========
@@ -69,10 +69,10 @@ Eviction Schedulers
 
 There are four different types of eviction schedulers that can be used with `ConcurrentMapWithTimedEvictionDecorator` and its subclass `ConcurrentHashMapWithTimedEviction`: 
 
-* `ExecutorServiceEvictionScheduler` uses a `java.util.concurrent.ScheduledExecutorService` to schedule multiple tasks for entries that should be evicted, one task per entry.
-* `RegularTaskEvictionScheduler` uses a priority queue to store entries in the order in which they should be evicted, and a regular task scheduled with a fixed delay in an `ScheduledExecutorService` to manage the automated eviction.
-* `DelayedTaskEvictionScheduler` is also based on a priority queue, and uses a single delayed task scheduled in an `ScheduledExecutorService` to manage the  automated eviction. The task is rescheduled appropriately each time an entry is added or removed from the queue to ensure that it will always fire at the time of the next scheduled eviction, not sooner or later.
-* `SingleThreadEvictionScheduler` is also based on a priority queue, and uses a single thread to manage the automated eviction. The behavior is similar to that of `DelayedTaskEvictionScheduler`, but it is implemented at a lower level, using a specially crafted thread rather than a scheduled executor service.
++ `ExecutorServiceEvictionScheduler` uses a `java.util.concurrent.ScheduledExecutorService` to schedule multiple tasks for entries that should be evicted, one task per entry.
++ `RegularTaskEvictionScheduler` uses a priority queue to store entries in the order in which they should be evicted, and a regular task scheduled with a fixed delay in an `ScheduledExecutorService` to manage the automated eviction.
++ `DelayedTaskEvictionScheduler` is also based on a priority queue, and uses a single delayed task scheduled in an `ScheduledExecutorService` to manage the  automated eviction. The task is rescheduled appropriately each time an entry is added or removed from the queue to ensure that it will always fire at the time of the next scheduled eviction, not sooner or later.
++ `SingleThreadEvictionScheduler` is also based on a priority queue, and uses a single thread to manage the automated eviction. The behavior is similar to that of `DelayedTaskEvictionScheduler`, but it is implemented at a lower level, using a specially crafted thread rather than a scheduled executor service.
 
 For all schedulers that use `ScheduledExecutorService` (the first three), you can pass an implementation upon construction. If you don't pass anything, an instance of `java.util.concurrent.ScheduledThreadPoolExecutor` with 1 thread is created and used. Similarly, for all queue-based schedulers (the last three), you can pass the queue upon construction, and an instance of `NavigableMapEvictionQueue` is used as a default.
 
@@ -85,8 +85,8 @@ Eviction Queues
 
 There are two different types of eviction queues that can be used with the three queue-based eviction schedulers described above:
 
-* `NavigableMapEvictionQueue` uses a `java.util.concurrent.ConcurrentNavigableMap` to store its entries. The key in the map is the eviction time of the entry, and the value is the entry itself.
-* `PriorityEvictionQueue` uses a `java.util.Queue` to store its entries. The queue should support priority queue semantics and be thread-safe.
++ `NavigableMapEvictionQueue` uses a `java.util.concurrent.ConcurrentNavigableMap` to store its entries. The key in the map is the eviction time of the entry, and the value is the entry itself.
++ `PriorityEvictionQueue` uses a `java.util.Queue` to store its entries. The queue should support priority queue semantics and be thread-safe.
 
 For both queue types, the actual navigable map or queue implementation can be passed upon construction. By default, `NavigableMapEvictionQueue` uses an instance of `java.util.concurrent.ConcurrentSkipListMap`, and `PriorityEvictionQueue` uses an instance of `java.util.concurrent.PriorityBlockingQueue`.
 
@@ -97,16 +97,28 @@ Design
 
 For a more comprehensive overview of the library design, see the provided class diagram:
 
-![Design](design/design.png "Design")
+![Design](design/design.png)
 
 Tests
 =====
 
 There are three test classes provided with the library:
 
-* `ConcurrentMapWithTimedEvictionTest` tests the functional correctness of the different `ConcurrentMapWithTimedEviction` implementations in single-threaded and multi-threaded environment.
-* `ConcurrentMapWithTimedEvictionAccuracyTest` tests the *accuracy* of the different eviction schedulers, i.e. how close are the actual eviction times to the times specified via the `evictMs` parameter. Here, an average accuracy of 400-500 microseconds is considered optimal. With some schedulers (for example `RegularTaskEvictionScheduler`), you can supply a parameter upon construction which lowers their accuracy, effectively trading it for performance.
-* `ConcurrentMapWithTimedEvictionAccuracyPerfTest` tests the performance of the different `ConcurrentMapWithTimedEviction` implementations under an artificially heavy load (100 threads, 1,000,000 and 
++ `ConcurrentMapWithTimedEvictionTest` tests the functional correctness of the different `ConcurrentMapWithTimedEviction` implementations in single-threaded and multi-threaded environment.
++ `ConcurrentMapWithTimedEvictionAccuracyTest` tests the *accuracy* of the different eviction schedulers, i.e. how close are the actual eviction times to the times specified via the `evictMs` parameter. Here, an average accuracy of 400-500 microseconds is considered optimal. With some schedulers (for example `RegularTaskEvictionScheduler`), you can supply a parameter upon construction which lowers their accuracy, effectively trading it for performance.
++ `ConcurrentMapWithTimedEvictionAccuracyPerfTest` tests the performance of the different `ConcurrentMapWithTimedEviction` implementations under an artificially heavy load (100 threads performing 2,000,000 operations on 1,000,000 entries)
 
 Performance
 ===========
+
+Implementation                                                                Get (us)   Put (us) 
+---------------------------------------------------------------------------- --------- ---------- 
+`ConcurrentHashMap` (JDK, non-evicting)                                           0.5     20 - 30 
+`Cache` (Guava, evicting)                                                     0.5 - 5     80 - 90 
+`ConcurrentHashMapWithTimedEviction` with `ExecutorServiceEvictionScheduler`  0.5 - 5   250 - 400 
+`ConcurrentHashMapWithTimedEviction` with `RegularTaskEvictionScheduler`      0.5 - 5     25 - 80 
+`ConcurrentHashMapWithTimedEviction` with `DelayedTaskEvictionScheduler`      0.5 - 5     25 - 40 
+`ConcurrentHashMapWithTimedEviction` with `SingleThreadEvictionScheduler`     0.5 - 5     20 - 60 
+
+
+
