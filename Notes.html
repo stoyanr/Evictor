@@ -1,0 +1,55 @@
+<p>Thank you for considering my submission for the Cayetano programming contest.</p>
+<p>My solution for the Java task is Evictor, a Java library providing an implementation of <code>java.util.concurrent.ConcurrentMap</code> that supports timed entry eviction, as specified in the task definition. You can find more information in the provided README and Javadoc. In this document, I would like to provide some additional information that could help you test and evaluate my solution.</p>
+<p>I started with the simple idea of providing a <code>ConcurrentMap</code> decorator, but ended up with a mini-library which contains three different interfaces with multiple implementations for each one of them. The main reason is that I experimented with different approaches for scheduling the automated eviction and came up with several ideas, three of which seem to perform roughly equally so I am not able to decide which one is best. Furthermore, I expect that each may deliver better performance than the other two depending on the way the map is actually used (see README).</p>
+<h1 id="testing">Testing</h1>
+<p>Due to the above reasons, I would like to ask you to test at least the following three implementations:</p>
+<ol style="list-style-type: decimal">
+<li><code>ConcurrentHashMapWithTimedEviction</code> with <code>RegularTaskEvictionScheduler</code> and optimal scheduling delay, initial capacity, and concurrency level.</li>
+</ol>
+<ul>
+<li>The optimal delay depends on the acceptable accuracy. If it's acceptable for the automated evictions to happen with a lower average accuracy than 1 ms, please specify it, e.g. as 2 or 3 milliseconds, this would positively impact performance.</li>
+<li>The optimal initial capacity depends on the expected size of the map. If the map is expected to hold 1,000,000 entries, it is better to specify this value in the constructor, as this would eliminate any resizing and therefore the performance would be higher.</li>
+<li>The optimal concurrency level should be equal to the number of threads accessing the map at the same time, according to the JDK documentation.</li>
+</ul>
+<pre><code>EvictionScheduler&lt;Integer, String&gt; scheduler = new RegularTaskEvictionScheduler&lt;&gt;(delay, TimeUnit.MILLISECONDS);
+ConcurrentMapWithTimedEviction&lt;Integer, String&gt; map = new ConcurrentHashMapWithTimedEviction&lt;&gt;(initialCapacity, 0.75f, concurrencyLevel, scheduler);</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li><code>ConcurrentHashMapWithTimedEviction</code> with <code>DelayedTaskEvictionScheduler</code> and optimal initial capacity and concurrency level (see above).</li>
+</ol>
+<pre><code>EvictionScheduler&lt;Integer, String&gt; scheduler = new DelayedTaskEvictionScheduler&lt;&gt;();
+ConcurrentMapWithTimedEviction&lt;Integer, String&gt; map = new ConcurrentHashMapWithTimedEviction&lt;&gt;(initialCapacity, 0.75f, concurrencyLevel, scheduler);</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li><code>ConcurrentHashMapWithTimedEviction</code> with <code>SingleThreadEvictionScheduler</code> and optimal initial capacity and concurrency level (see above).</li>
+</ol>
+<pre><code>EvictionScheduler&lt;Integer, String&gt; scheduler = new SingleThreadEvictionScheduler&lt;&gt;();
+ConcurrentMapWithTimedEviction&lt;Integer, String&gt; map = new ConcurrentHashMapWithTimedEviction&lt;&gt;(initialCapacity, 0.75f, concurrencyLevel, scheduler);</code></pre>
+<p>Please test with JDK 7 if possible. I tested mainly with this version of the JDK. I did some testing with JDK 6 as well and I believe I observed lower performance than with JDK 7. Currently, the pre-compiled package is binary compatible with JDK 7. The source is compatible with JDK 6 and could be recompiled and tested with JDK 6 if needed.</p>
+<h1 id="design-considerations">Design Considerations</h1>
+<h2 id="interfaces">Interfaces</h2>
+<p>As you may have noticed, there are some things I did a bit differently than requested, I believe for a good reason:</p>
+<ul>
+<li>I designed a parameterized map class <code>&lt;K, V&gt;</code>, which I believe is more useful than a map accepting <code>Object</code> as key or value.</li>
+<li>My main interface <code>ConcurrentMapWithTimedEviction</code> extends <code>java.util.concurrent.ConcurrentMap</code>, which from my perspective again is very useful. This however forced me to implement many more methods than requested.</li>
+<li>Besides the methods <code>put</code> and <code>putIfAbsent</code>, I added also <code>evictMs</code> versions of the 2 <code>replace</code> methods in <code>ConcurrentMap</code>. Since my interface extends <code>ConcurrentMap</code>, it is natural all methods that can put something in the map to have <code>evictMs</code> versions.</li>
+</ul>
+<h2 id="composability">Composability</h2>
+<p>I favored composability heavily and therefore as a user of the library, you have the flexibility to decorate a different class than the obvious <code>java.util.concurrent.ConcurrentHashMap</code> or to choose a different (e.g. faster) priority queue implementation in the eviction schedulers than <code>java.util.concurrent.ConcurrentSkipListMap</code>. In practice, I was not able to find neither a faster concurrent hash map than <code>ConcurrentHashMap</code>, nor a faster concurrent priority queue than <code>ConcurrentSkipListMap</code>. However, if such <strong>would</strong> exist, they could easily be used with the library.</p>
+<h2 id="thread-safety">Thread Safety</h2>
+<p>Thread safety is ensured via the following simple approach:</p>
+<ul>
+<li>All used data structures are thread safe, e.g. <code>java.util.concurrent.ConcurrentHashMap</code></li>
+<li>All class fields are either <code>final</code> (when possible) or <code>volatile</code></li>
+<li>A small number of private methods in the schedulers are <code>synchronized</code> to ensure atomicity in a concurrent environment</li>
+</ul>
+<p>I considered using some of the new concurrency primitives available since Java 6, but eventually decided that in this particular case, they offer no advantage over <code>volatile</code> and <code>synchronized</code>.</p>
+<h1 id="tests">Tests</h1>
+<p>There are three test classes provided with the library:</p>
+<ul>
+<li><code>ConcurrentMapWithTimedEvictionTest</code> tests the functional correctness of the different <code>ConcurrentMapWithTimedEviction</code> implementations in single-threaded and multi-threaded environment.</li>
+<li><code>ConcurrentMapWithTimedEvictionAccuracyTest</code> tests the <em>accuracy</em> of the different eviction schedulers, i.e. how close are the actual eviction times to the times specified via the <code>evictMs</code> parameter. Here, an average accuracy of 400-600 microseconds is considered optimal.</li>
+<li><code>ConcurrentMapWithTimedEvictionPerfTest</code> tests the performance of the different <code>ConcurrentMapWithTimedEviction</code> implementations under an artificially heavy load</li>
+</ul>
+<p>Note that <code>ConcurrentMapWithTimedEvictionTest</code> sometimes (but very rarely) fails due to unpredictible lower accuracy of single evictions. The test could be designed in a different way to avoid this, e.g. by mocking the system timer, but since the current approach worked for me I didn't do it.</p>
+<h1 id="build-development-environment">Build / Development Environment</h1>
+<p>There is a Maven build which you could use to rebuild the library if needed. Just do <code>mvn clean install</code>, or <code>mvn clean install -DskipTests</code> if you would rather skip the tests. The only external dependencies used in the project are JUnit and Guava, and these are used only for testing. The actual jar built has no external dependencies whatsoever. Besides the binary package, the Maven build produces also source and Javadoc packages.</p>
+<p>There is also an Eclipse project. If you import it in Eclipse, make sure that you have the Maven Eclipse plugin (m2e) installed.</p>

@@ -20,16 +20,16 @@ public class ConcurrentMapWithTimedEvictionPerfTest extends
 
     private static final int NUM_THREADS = 100;
     private static final int NUM_ITERATIONS = 20000;
-    private static final int EVICT_MS = 1 * 1000;
+    private static final int EVICT_MS = 200;
 
     @Parameters
     public static Collection<Object[]> data() {
         // @formatter:off
         return Arrays.asList(new Object[][] {
             { IMPL_CHM }, 
-            { IMPL_GUAVA_CACHE }, 
+//            { IMPL_GUAVA_CACHE }, 
             { IMPL_GUAVA_CACHE_E }, 
-            { IMPL_CHMWTE_NULL }, 
+//            { IMPL_CHMWTE_NULL }, 
             { IMPL_CHMWTE_ESS }, 
             { IMPL_CHMWTE_NM_RT },
             { IMPL_CHMWTE_NM_DT },
