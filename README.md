@@ -105,12 +105,12 @@ The table below compares the performance of the different approaches, benchmarke
 
 Implementation                                                                Get (us)   Put (us) 
 ---------------------------------------------------------------------------- --------- ---------- 
-`ConcurrentHashMap` (JDK, non-evicting)                                      0.1 - 2.0     5 - 15
+`ConcurrentHashMap` (JDK, non-evicting)                                      0.1 - 1.0     5 - 15
 `Cache` (Guava, evicting)                                                    0.3 - 0.5    40 - 45
 `ConcurrentHashMapWithTimedEviction` with `ExecutorServiceEvictionScheduler` 0.1 - 1.5   90 - 180
 `ConcurrentHashMapWithTimedEviction` with `RegularTaskEvictionScheduler`     0.1 - 1.5    10 - 20
-`ConcurrentHashMapWithTimedEviction` with `DelayedTaskEvictionScheduler`     0.1 - 0.7     9 - 11
-`ConcurrentHashMapWithTimedEviction` with `SingleThreadEvictionScheduler`    0.1 - 0.7     9 - 11
+`ConcurrentHashMapWithTimedEviction` with `DelayedTaskEvictionScheduler`     0.1 - 1.0     9 - 11
+`ConcurrentHashMapWithTimedEviction` with `SingleThreadEvictionScheduler`    0.1 - 1.0     9 - 11
 
 As can be seen from the above table, `ExecutorServiceEvictionScheduler` delivers the worst Put performance, with Guava coming next and the three queue-based eviction schedulers clearly outperforming Guava. There is no clear winner among the last three. Each of them would deliver optimal performance in different circumstances, for example:
 
