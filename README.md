@@ -3,9 +3,9 @@
 **Evictor** is a Java library providing an implementation of `java.util.concurrent.ConcurrentMap` that supports timed entry eviction for caching. It is easy to use, thread-safe, very fast, and highly composable. It actually won a [programming contest](http://www.cayetanogaming.com/javatask) where it outperformed other similar implementations in the areas of thread safety, performance, and design.
 
 The latest binary, javadoc, and sources packages can be found here:
-* [evictor-1.0.0.jar]()
-* [evictor-1.0.0-javadoc.jar]()
-* [evictor-1.0.0-sources.jar]()
+* [evictor-1.0.jar](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0.jar)
+* [evictor-1.0-javadoc.jar](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0-javadoc.jar)
+* [evictor-1.0-sources.jar](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0-sources.jar)
 
 The [Javadoc](http://stoyanr.github.com/Evictor/evictor/javadoc/) is also available online. 
 
