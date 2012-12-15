@@ -7,6 +7,8 @@ The latest binary, javadoc, and sources packages can be found here:
 * [evictor-1.0.0-javadoc.jar]()
 * [evictor-1.0.0-sources.jar]()
 
+The [Javadoc](http://stoyanr.github.com/Evictor/evictor/javadoc/) is also available online. 
+
 This work is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
 ## <a id="Overview"></a>Overview
@@ -181,9 +183,7 @@ In addition, `RegularTaskEvictionScheduler` has the advantage over the other two
 
 ### Overview
 
-For a more comprehensive overview of the library design, see this class diagram:
-
-![Design](Evictor/raw/master/design/design.png)
+For a more comprehensive overview of the library design, see this [class diagram](Evictor/raw/master/design/design.png).
 
 ### Interfaces
 
