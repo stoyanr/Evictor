@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.stoyanr.evictor</groupId>
 	<artifactId>evictor-parent</artifactId>
-	<version>1.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Evictor Parent</name>
     <description>A concurrent map with timed element eviction</description>

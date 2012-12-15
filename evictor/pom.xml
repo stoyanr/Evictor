@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>com.stoyanr.evictor</groupId>
 		<artifactId>evictor-parent</artifactId>
-		<version>1.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 	
 	<build>
