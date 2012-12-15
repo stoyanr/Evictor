@@ -36,7 +36,7 @@ As already mentioned, Evictor was originally created in November 2012 as a submi
 
 The contest task requested simply to design a concurrent (thread-safe) map that supports timed entry eviction, having most of the standard map operations and overloaded versions of the `put` and `putIfAbsent` accepting one additional argument, the time-to-live in milliseconds. The criteria to judge the solutions included thread safety, performance, and design.
 
-I started with the simple idea of providing a `ConcurrentMap` decorator, but ended up with a mini-library which contains three different interfaces with multiple implementations for each one of them. The main reason is that I experimented with different approaches for scheduling the automated eviction and came up with several ideas, three of which seemed to perform roughly equally so I was not able to decide which one is best. Furthermore, I determined that each may deliver better performance than the other two depending on the way the map is actually used.
+I started with the simple idea of providing a `java.util.concurrent.ConcurrentMap` decorator, but ended up with a mini-library containing three different interfaces with multiple implementations for each one of them. I experimented with different approaches for scheduling the automated eviction and came up with several ideas, three of which seemed to perform roughly equally so I was not able to decide which one is best. Furthermore, I determined that each may deliver better performance than the other two depending on the way the map is actually used.
 
 ## Usage
 
