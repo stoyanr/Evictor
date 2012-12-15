@@ -1,12 +1,12 @@
-## <a id="Introduction"></a>Introduction
+## Introduction
 
-**Evictor** is a Java library providing an implementation of `java.util.concurrent.ConcurrentMap` that supports timed entry eviction for caching. It is easy to use, thread-safe, very fast, and highly composable. It actually won a [programming contest](http://www.cayetanogaming.com/javatask) where it outperformed other similar implementations in the areas of thread safety, performance, and design.
+**Evictor** is a Java library providing an implementation of `java.util.concurrent.ConcurrentMap` that supports timed entry eviction for caching. It is easy to use, thread-safe, very fast, and highly composable. It actually won a [programming contest](http://www.cayetanogaming.com/javatask) in which the submissions were judged for thread safety, performance, and design.
 
 You can download the latest [binary](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0.jar), [javadoc](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0-javadoc.jar), and [sources](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0-sources.jar) and browse the [Javadoc online](http://stoyanr.github.com/Evictor/evictor/javadoc/). 
 
 This work is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
-## <a id="Overview"></a>Overview
+## Overview
 
 The central abstraction is the interface `ConcurrentMapWithTimedEviction`, which extends `ConcurrentMap` by adding the following four methods:
 
@@ -23,8 +23,6 @@ There is a single implementation of this interface, `ConcurrentMapWithTimedEvict
 
 ### Library Features
 
-The library has the following features:
-
 * **Ease of use** - just use the default `ConcurrentHashMapWithTimedEviction` constructor if you don't care about the details.
 * **Extreme composability** - if you do care about the details, you can supply your own `ConcurrentMap` implementation, choose among the 4 available `EvictionScheduler` implementations (or supply your own), and among the 2 available `EvictionQueue` implementations (or supply your own) to create a map which has an even higher performance or is tuned to your needs.
 * **Thread safety** - all classes are safe to use in a concurrent environment
@@ -34,17 +32,13 @@ The library has the following features:
 
 ### History
 
-As already mentioned, Evictor was originally created in November 2012 as a submission for a [programming contest](http://www.cayetanogaming.com/javatask) sponsored and organized by [Cayetano Gaming](http://www.cayetanogaming.com/) and announced at the [Java2Days conference](http://2012.java2days.com/?page_id=36). The contest task requested simply to design a concurrent (thread-safe) map that supports timed entry eviction, having most of the standard map operations and overloaded versions of the `put` and `putIfAbsent` accepting one additional argument, the time-to-live in milliseconds. The criteria to judge the solutions were defined as:
+As already mentioned, Evictor was originally created in November 2012 as a submission for a [programming contest](http://www.cayetanogaming.com/javatask) sponsored and organized by [Cayetano Gaming](http://www.cayetanogaming.com/) and announced at the [Java2Days conference](http://2012.java2days.com/?page_id=36). Eventually, Evictor actually *won* this contest, so I deemed it worthy of sharing with the community.
 
-* Correctness (thread-safety) in multithreaded environment
-* Performance when concurrently accessed from multiple threads
-* Code structure and design
+The contest task requested simply to design a concurrent (thread-safe) map that supports timed entry eviction, having most of the standard map operations and overloaded versions of the `put` and `putIfAbsent` accepting one additional argument, the time-to-live in milliseconds. The criteria to judge the solutions included thread safety, performance, and design.
 
 I started with the simple idea of providing a `ConcurrentMap` decorator, but ended up with a mini-library which contains three different interfaces with multiple implementations for each one of them. The main reason is that I experimented with different approaches for scheduling the automated eviction and came up with several ideas, three of which seemed to perform roughly equally so I was not able to decide which one is best. Furthermore, I determined that each may deliver better performance than the other two depending on the way the map is actually used.
 
-Eventually, Evictor actually *won* the contest. I became aware of this recently and thought it is worthy of sharing it with the community.
-
-## <a id="Usage"></a>Usage
+## Usage
 
 ### Creating a ConcurrentHashMapWithTimedEviction
 
@@ -72,6 +66,9 @@ EvictionScheduler<Integer, String> scheduler =
 ConcurrentMapWithTimedEviction<Integer, String> map = 
     new ConcurrentHashMapWithTimedEviction<>(100, 0.75f, 8, scheduler);
 ```
+See:
+* [ConcurrentMapWithTimedEviction.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/ConcurrentMapWithTimedEviction.java)
+* [ConcurrentHashMapWithTimedEviction.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/ConcurrentHashMapWithTimedEviction.java)
 
 ### Decorating a Custom ConcurrentMap Implementation
 
@@ -86,6 +83,9 @@ EvictionScheduler<Integer, String> scheduler = new SingleThreadEvictionScheduler
 ConcurrentMapWithTimedEviction<Integer, String> map = 
     new ConcurrentMapWithTimedEvictionDecorator<>(delegate, scheduler);
 ```
+
+See:
+* [ConcurrentMapWithTimedEvictionDecorator.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/ConcurrentMapWithTimedEvictionDecorator.java)
 
 ### Eviction Schedulers
 
@@ -102,6 +102,13 @@ Regarding performance, under heavy contention the last three queue-based schedul
 
 Note that you can create a single eviction scheduler and use it with multiple maps.
 
+See:
+* [EvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/EvictionScheduler.java)
+* [ExecutorServiceEvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/ExecutorServiceEvictionScheduler.java)
+* [RegularTaskEvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/RegularTaskEvictionScheduler.java)
+* [DelayedTaskEvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/DelayedTaskEvictionScheduler.java)
+* [SingleThreadEvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/SingleThreadEvictionScheduler.java)
+
 ### Eviction Queues
 
 There are two different types of eviction queues that can be used with the three queue-based eviction schedulers described above:
@@ -113,6 +120,11 @@ For both queue types, the actual navigable map or queue implementation can be pa
 
 Regarding performance, `NavigableMapEvictionQueue` with its default map significantly outperforms `PriorityEvictionQueue` with its default queue. Therefore, all three schedulers mentioned above use `NavigableMapEvictionQueue` by default. Normally, you would not need to change this, unless you have a priority queue implementation which can outperform `java.util.concurrent.ConcurrentSkipListMap` in a concurrent environment. In this case, you could implement the `EvictionQueue` interface yourself and pass it to the appropriate scheduler.
 
+See:
+* [EvictionQueue.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/EvictionQueue.java)
+* [NavigableMapEvictionQueue.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/NavigableMapEvictionQueue.java)
+* [PriorityEvictionQueue.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/PriorityEvictionQueue.java)
+
 ## Performance
 
 The table below compares the performance of the different approaches, benchmarked against the JDK `ConcurrentHashMap` (non-evicting) and Guava's `Cache` (evicting). The results shown are the typical times (in microseconds) to execute a single Get or Put operation, as measured by multiple executions of a specially designed test in the following environment:
@@ -123,7 +135,7 @@ The table below compares the performance of the different approaches, benchmarke
 * For the three queue-based scheduler, the default queue implementation is used, which is `NavigableMapEvictionQueue` with a `java.util.concurrent.ConcurrentSkipListMap`.
 * The delay of `RegularTaskEvictionScheduler` is set to 750 microseconds, which makes it as accurate as the other schedulers (400-600 microseconds), but negatively impacts performance compared to the default of 1 millisecond.
 
-<table>
+<table border="1" cellpadding="4" cellspacing="0">
 <thead>
 <tr class="header">
 <th align="left">Implementation</th>
@@ -185,7 +197,7 @@ For a more comprehensive overview of the library design, see this [class diagram
 The basic interface was part of the [contest task description](http://www.cayetanogaming.com/javatask). Some things are done a bit differently than requested, for a good reason:
 
 * The map is parameterized `<K, V>`, which is more useful than a map accepting `Object` as key or value.
-* The main interface `ConcurrentMapWithTimedEviction` extends `java.util.concurrent.ConcurrentMap`, again is very useful. This however forces the implementation of more methods than requested.
+* The main interface `ConcurrentMapWithTimedEviction` extends `java.util.concurrent.ConcurrentMap`, which again is very useful. This however forces the implementation of more methods than requested.
 * Besides the methods `put` and `putIfAbsent`, there are also `evictMs` versions of the 2 `replace` methods in `ConcurrentMap`. Since the interface extends `ConcurrentMap`, it is natural all methods that can put something in the map to have `evictMs` versions.
 
 ### Composability
@@ -208,7 +220,12 @@ There are three test classes provided with the library:
 * `ConcurrentMapWithTimedEvictionAccuracyTest` tests the *accuracy* of the different eviction schedulers, i.e. how close are the actual eviction times to the times specified via the `evictMs` parameter. Here, an average accuracy of 400-600 microseconds is considered optimal. 
 * `ConcurrentMapWithTimedEvictionPerfTest` tests the performance of the different `ConcurrentMapWithTimedEviction` implementations under an artificially heavy load
 
-Note that `ConcurrentMapWithTimedEvictionTest` sometimes (but very rarely) fails due to unpredictible lower accuracy of single evictions.  
+Note that `ConcurrentMapWithTimedEvictionTest` sometimes (but very rarely) fails due to unpredictible lower accuracy of single evictions. 
+
+See:
+* [ConcurrentMapWithTimedEvictionTest.java](Evictor/blob/master/evictor/test/com/stoyanr/evictor/ConcurrentMapWithTimedEvictionTest.java)
+* [ConcurrentMapWithTimedEvictionAccuracyTest.java](Evictor/blob/master/evictor/test/com/stoyanr/evictor/ConcurrentMapWithTimedEvictionAccuracyTest.java)
+* [ConcurrentMapWithTimedEvictionPerfTest.java](Evictor/blob/master/evictor/test/com/stoyanr/evictor/ConcurrentMapWithTimedEvictionPerfTest.java)
 
 ## Build and Development Environment
 
