@@ -1,4 +1,9 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.scheduler;
+
+import com.stoyanr.evictor.EvictionQueue;
+import com.stoyanr.evictor.EvictionScheduler;
+import com.stoyanr.evictor.map.EvictibleEntry;
+import com.stoyanr.evictor.queue.NavigableMapEvictionQueue;
 
 /**
  * An abstract {@link EvictionScheduler} which uses an {@link EvictionQueue} to store

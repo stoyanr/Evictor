@@ -1,4 +1,4 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -14,6 +14,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import com.stoyanr.evictor.EvictionScheduler;
 
 @RunWith(value = Parameterized.class)
 public class ConcurrentMapWithTimedEvictionAccuracyTest extends

@@ -1,10 +1,13 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.map;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+
+import com.stoyanr.evictor.ConcurrentMapWithTimedEviction;
+import com.stoyanr.evictor.EvictionScheduler;
 
 /**
  * A {@link ConcurrentMapWithTimedEviction} implementation which decorates an existing

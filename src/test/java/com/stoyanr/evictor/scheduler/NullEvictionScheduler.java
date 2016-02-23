@@ -1,4 +1,7 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.scheduler;
+
+import com.stoyanr.evictor.EvictionScheduler;
+import com.stoyanr.evictor.map.EvictibleEntry;
 
 public class NullEvictionScheduler<K, V> implements EvictionScheduler<K, V> {
 

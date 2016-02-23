@@ -1,4 +1,4 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.map;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;

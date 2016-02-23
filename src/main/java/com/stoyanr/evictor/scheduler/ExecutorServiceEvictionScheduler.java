@@ -1,10 +1,13 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.scheduler;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import com.stoyanr.evictor.EvictionScheduler;
+import com.stoyanr.evictor.map.EvictibleEntry;
 
 /**
  * An {@link EvictionScheduler} which uses a {@link java.util.concurrent.ScheduledExecutorService}

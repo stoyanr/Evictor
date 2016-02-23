@@ -1,4 +1,4 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.map;
 
 import java.util.Arrays;
 import java.util.Collection;

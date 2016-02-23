@@ -1,8 +1,11 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.queue;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+
+import com.stoyanr.evictor.EvictionQueue;
+import com.stoyanr.evictor.map.EvictibleEntry;
 
 /**
  * An {@link EvictionQueue} which uses a {@link java.util.concurrent.ConcurrentNavigableMap} to

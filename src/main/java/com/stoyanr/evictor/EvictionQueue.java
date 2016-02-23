@@ -1,5 +1,8 @@
 package com.stoyanr.evictor;
 
+import com.stoyanr.evictor.map.EvictibleEntry;
+import com.stoyanr.evictor.scheduler.AbstractQueueEvictionScheduler;
+
 /**
  * A priority queue of evictible entries used by {@link AbstractQueueEvictionScheduler} to store
  * entries that should be evicted automatically in the order in which they should be evicted. It

@@ -1,4 +1,4 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.map;
 
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -14,6 +14,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.stoyanr.evictor.EvictionScheduler;
+import com.stoyanr.evictor.queue.PriorityEvictionQueue;
+import com.stoyanr.evictor.scheduler.DelayedTaskEvictionScheduler;
+import com.stoyanr.evictor.scheduler.ExecutorServiceEvictionScheduler;
+import com.stoyanr.evictor.scheduler.NullEvictionScheduler;
+import com.stoyanr.evictor.scheduler.RegularTaskEvictionScheduler;
+import com.stoyanr.evictor.scheduler.SingleThreadEvictionScheduler;
 
 public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 

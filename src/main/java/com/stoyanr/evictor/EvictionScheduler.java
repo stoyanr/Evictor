@@ -1,5 +1,8 @@
 package com.stoyanr.evictor;
 
+import com.stoyanr.evictor.map.ConcurrentMapWithTimedEvictionDecorator;
+import com.stoyanr.evictor.map.EvictibleEntry;
+
 /**
  * An eviction scheduler used by {@link ConcurrentMapWithTimedEvictionDecorator} to automatically
  * evict entries upon expiration. It provides methods for scheduling the eviction of newly added

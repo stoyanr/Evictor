@@ -1,4 +1,7 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.scheduler;
+
+import com.stoyanr.evictor.EvictionQueue;
+import com.stoyanr.evictor.map.EvictibleEntry;
 
 /**
  * A concrete implementation of {@link AbstractQueueEvictionScheduler} which uses a single thread to

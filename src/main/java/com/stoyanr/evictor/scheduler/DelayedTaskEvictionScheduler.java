@@ -1,10 +1,14 @@
-package com.stoyanr.evictor;
+package com.stoyanr.evictor.scheduler;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+
+import com.stoyanr.evictor.EvictionQueue;
+import com.stoyanr.evictor.map.EvictibleEntry;
 
 /**
  * A concrete implementation of {@link AbstractQueueEvictionScheduler} which uses a single delayed
