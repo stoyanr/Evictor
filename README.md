@@ -1,3 +1,15 @@
+## Changes from original project: github:stoyanr/Evictor
+
+Following changes have been made/are to be made to this fork:
+
+* Default JDK version is now 1.7
+* OSS-Mavenized the project so that it is available via Maven Central
+* Separated inner classes
+* Modified code for better readability and checks
+* Removed eclipse-specific files
+* Removed the module - the top-level POM is the project POM
+
+
 ## Introduction
 
 **Evictor** is a Java library providing an implementation of `java.util.concurrent.ConcurrentMap` that supports timed entry eviction for caching. It is easy to use, thread-safe, very fast, and highly composable. It actually won a [programming contest](http://www.cayetanogaming.com/javatask) in which the submissions were judged for thread safety, performance, and design.
