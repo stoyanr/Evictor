@@ -97,7 +97,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 * implementation (see {@link AbstractQueueEvictionScheduler}) and the
 	 * specified scheduled executor service and delay.
 	 * 
-	 * @param ses
+	 * @param executorService
 	 *            the scheduled executor service to be used
 	 * 
 	 * @param delay
@@ -113,9 +113,9 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 * @throws IllegalArgumentException
 	 *             if delay is less than or equal to zero
 	 */
-    public RegularTaskEvictionScheduler(ScheduledExecutorService ses, long delay, TimeUnit timeUnit) {
+    public RegularTaskEvictionScheduler(ScheduledExecutorService executorService, long delay, TimeUnit timeUnit) {
         super();
-        if (ses == null) {
+        if (executorService == null) {
             throw new NullPointerException("ScheduledExecutorService instance cannot be null");
         }
         
@@ -123,7 +123,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
             throw new IllegalArgumentException("Delay cannot be less than or equal to zero");
         }
         
-        this.executorService = ses;
+        this.executorService = executorService;
         this.delay = delay;
         this.timeUnit = timeUnit;
     }

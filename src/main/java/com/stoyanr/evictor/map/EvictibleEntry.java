@@ -73,10 +73,14 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 *             if evictMs is negative
 	 */
     EvictibleEntry(ConcurrentMapWithTimedEvictionDecorator<K, V> map, K key, V value, long evictMs) {
-        if (value == null)
-            throw new NullPointerException();
-        if (evictMs < 0)
-            throw new IllegalArgumentException();
+        if (value == null) {
+            throw new NullPointerException("Value cannot be null");
+        }
+        
+        if (evictMs < 0) {
+            throw new IllegalArgumentException("Eviction time cannot be less than zero");
+        }
+        
         this.map = map;
         this.key = key;
         this.value = value;
@@ -124,8 +128,10 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 */
     @Override
     public synchronized V setValue(V value) {
-        if (value == null)
-            throw new NullPointerException();
+        if (value == null) {
+            throw new NullPointerException("value cannot be null");
+        }
+        
         V oldValue = this.value;
         this.value = value;
         return oldValue;

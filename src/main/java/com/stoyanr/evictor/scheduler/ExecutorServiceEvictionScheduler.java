@@ -57,19 +57,19 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
 	 * Creates an eviction scheduler with the specified scheduled executor
 	 * service.
 	 * 
-	 * @param ses
+	 * @param executorService
 	 *            the scheduled executor service to be used
 	 *            
 	 * @throws NullPointerException
 	 *             if the scheduled executor service is <code>null</code>
 	 */
-    public ExecutorServiceEvictionScheduler(ScheduledExecutorService ses) {
+    public ExecutorServiceEvictionScheduler(ScheduledExecutorService executorService) {
         super();
-        if (ses == null) {
+        if (executorService == null) {
             throw new NullPointerException("ScheduledExecutorService instance cannot be null");
         }
         
-        this.executorService = ses;
+        this.executorService = executorService;
     }
 
     /**

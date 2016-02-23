@@ -60,8 +60,10 @@ public class NavigableMapEvictionQueue<K, V> implements EvictionQueue<K, V> {
 	 *             if the map is <code>null</code>
 	 */
     public NavigableMapEvictionQueue(ConcurrentNavigableMap<Long, EvictibleEntry<K, V>> map) {
-        if (map == null)
-            throw new NullPointerException();
+        if (map == null) {
+            throw new NullPointerException("Map instnace cannot be null");
+        }
+        
         this.map = map;
     }
 

@@ -48,9 +48,9 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
     
     private volatile long next = 0;
     
-    private final Thread t = new Thread(new EvictionThread());
+    private final Thread evictionThread = new Thread(new EvictionThread());
     
-    private final Object m = new Object();
+    private final Object mutex = new Object();
 
     /**
 	 * Creates a single thread eviction scheduler with the default queue
@@ -60,7 +60,7 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
 	 */
     public SingleThreadEvictionScheduler() {
         super();
-        t.start();
+        evictionThread.start();
     }
 
     /**
@@ -76,7 +76,7 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
 	 */
     public SingleThreadEvictionScheduler(EvictionQueue<K, V> queue) {
         super(queue);
-        t.start();
+        evictionThread.start();
     }
 
     /**
@@ -89,9 +89,9 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
     @Override
     public void shutdown() {
         finished = true;
-        t.interrupt();
+        evictionThread.interrupt();
         try {
-            t.join();
+            evictionThread.join();
         } catch (InterruptedException e) {
         	// TODO: add this
         }
@@ -109,9 +109,9 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
     @Override
     protected void onScheduleEviction(EvictibleEntry<K, V> e) {
         if (getNextEvictionTime() != next) {
-            synchronized (m) {
+            synchronized (mutex) {
                 notified = true;
-                m.notifyAll();
+                mutex.notifyAll();
             }
         }
     }
@@ -128,9 +128,9 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
     @Override
     protected void onCancelEviction(EvictibleEntry<K, V> e) {
         if (getNextEvictionTime() != next) {
-            synchronized (m) {
+            synchronized (mutex) {
                 notified = true;
-                m.notifyAll();
+                mutex.notifyAll();
             }
         }
     }
@@ -199,9 +199,9 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
         private boolean waitFor(long timeout) {
             boolean result = true;
             try {
-                synchronized (m) {
+                synchronized (mutex) {
                     notified = false;
-                    m.wait(timeout / 1000000, (int) (timeout % 1000000));
+                    mutex.wait(timeout / 1000000, (int) (timeout % 1000000));
                     result = !notified;
                 }
             } catch (InterruptedException e) {

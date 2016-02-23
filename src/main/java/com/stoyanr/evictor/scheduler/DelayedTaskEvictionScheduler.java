@@ -105,20 +105,20 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 * @param queue
 	 *            the queue to be used
 	 *            
-	 * @param ses
+	 * @param executorService
 	 *            the scheduled executor service to be used
 	 *            
 	 * @throws NullPointerException
 	 *             if either the queue or the scheduled executor service is
 	 *             <code>null</code>
 	 */
-    public DelayedTaskEvictionScheduler(EvictionQueue<K, V> queue, ScheduledExecutorService ses) {
+    public DelayedTaskEvictionScheduler(EvictionQueue<K, V> queue, ScheduledExecutorService executorService) {
         super(queue);
-        if (ses == null) {
+        if (executorService == null) {
             throw new NullPointerException("ScheduledExecutorService instance cannot be null");
         }
         
-        this.ses = ses;
+        this.ses = executorService;
     }
 
     /**

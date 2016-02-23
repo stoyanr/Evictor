@@ -901,15 +901,15 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
         private final Iterator<Entry<K, EvictibleEntry<K, V>>> iterator = delegate.entrySet().iterator();
         
-        private volatile Entry<K, V> ce = null;
+        private volatile Entry<K, V> currentEntry = null;
 
         public EntryIterator() {
         }
 
         @Override
         public Entry<K, V> next() {
-        	this.ce = this.iterator.next().getValue();
-            return this.ce;
+        	this.currentEntry = this.iterator.next().getValue();
+            return this.currentEntry;
         }
 
         @Override
@@ -919,12 +919,12 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 
         @Override
         public synchronized void remove() {
-            if (this.ce == null) {
-                throw new IllegalStateException();
+            if (this.currentEntry == null) {
+                throw new IllegalStateException("There is no entry that can be removed");
             }
             
-            ConcurrentMapWithTimedEvictionDecorator.this.remove(ce.getKey(), ce.getValue());
-            this.ce = null;
+            ConcurrentMapWithTimedEvictionDecorator.this.remove(currentEntry.getKey(), currentEntry.getValue());
+            this.currentEntry = null;
         }
     }
 

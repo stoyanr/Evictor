@@ -75,8 +75,10 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
 	 *             if the queue is <code>null</code>
 	 */
     public PriorityEvictionQueue(Queue<EvictibleEntry<K, V>> queue) {
-        if (queue == null)
-            throw new NullPointerException();
+        if (queue == null) {
+            throw new NullPointerException("Queue instance cannot be null");
+        }
+        
         this.queue = queue;
     }
 
