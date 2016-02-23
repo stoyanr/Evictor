@@ -96,7 +96,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 	 */
     @Override
     public int size() {
-        return delegate.size();
+        return this.delegate.size();
     }
 
     /**
@@ -121,7 +121,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 	 */
     @Override
     public boolean containsKey(Object key) {
-        EvictibleEntry<K, V> e = delegate.get(key);
+        EvictibleEntry<K, V> e = this.delegate.get(key);
         return ((e == null) || evictIfExpired(e)) ? false : true;
     }
 
@@ -189,7 +189,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 	 */
     @Override
     public V get(Object key) {
-        EvictibleEntry<K, V> e = delegate.get(key);
+        EvictibleEntry<K, V> e = this.delegate.get(key);
         return ((e == null) || evictIfExpired(e)) ? null : e.getValue();
     }
 
@@ -277,7 +277,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     @Override
     public V put(K key, V value, long evictMs) {
         EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(this, key, value, evictMs);
-        EvictibleEntry<K, V> oe = delegate.put(key, e);
+        EvictibleEntry<K, V> oe = this.delegate.put(key, e);
         if (oe != null) {
             // An entry is being removed, cancel its automatic eviction
             cancelEviction(oe);
@@ -387,7 +387,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     public V putIfAbsent(K key, V value, long evictMs) {
         while (true) {
             EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(this, key, value, evictMs);
-            EvictibleEntry<K, V> oe = delegate.putIfAbsent(key, e);
+            EvictibleEntry<K, V> oe = this.delegate.putIfAbsent(key, e);
             if (oe == null) {
                 // An entry is being added, schedule its automatic eviction
                 scheduleEviction(e);
@@ -443,7 +443,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 	 */
     @Override
     public V remove(Object key) {
-        EvictibleEntry<K, V> oe = delegate.remove(key);
+        EvictibleEntry<K, V> oe = this.delegate.remove(key);
         if (oe != null) {
             // An entry is being removed, cancel its automatic eviction
             cancelEviction(oe);
@@ -490,12 +490,12 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
             throw new NullPointerException("Value to be checked to cannot be null");
         }
         
-        EvictibleEntry<K, V> oe = delegate.get(key);
+        EvictibleEntry<K, V> oe = this.delegate.get(key);
         if ((oe == null) || evictIfExpired(oe) || !oe.getValue().equals(value)) {
             return false;
         }
         
-        boolean removed = delegate.remove(key, oe);
+        boolean removed = this.delegate.remove(key, oe);
         // An entry is being removed, cancel its automatic eviction
         cancelEviction(oe);
         return removed;
@@ -598,14 +598,14 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     @Override
     public V replace(K key, V value, long evictMs) {
         // Avoid replacing an expired entry
-        EvictibleEntry<K, V> oe = delegate.get(key);
+        EvictibleEntry<K, V> oe = this.delegate.get(key);
         if ((oe == null) || evictIfExpired(oe)) {
             return null;
         }
 
         // Attempt replacement and schedule eviction if successful
         EvictibleEntry<K, V> e = new EvictibleEntry<K, V>(this, key, value, evictMs);
-        oe = delegate.replace(key, e);
+        oe = this.delegate.replace(key, e);
         if (oe != null) {
             // An entry is being replaced, cancel the automatic eviction of the old entry 
             // and schedule it for the new entry 
@@ -747,7 +747,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
     @Override
     public void clear() {
         cancelAllEvictions();
-        delegate.clear();
+        this.delegate.clear();
     }
 
     /**
@@ -765,7 +765,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 	 */
     @Override
     public Set<K> keySet() {
-        return delegate.keySet();
+        return this.delegate.keySet();
     }
 
     /**
@@ -784,7 +784,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
 	 */
     @Override
     public Set<Entry<K, V>> entrySet() {
-        return entrySet;
+        return this.entrySet;
     }
 
     private boolean evictIfExpired(EvictibleEntry<K, V> e) {
@@ -808,7 +808,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * Removes the entry from the map and optionally cancels its automatic eviction.
      */
     void evict(EvictibleEntry<K, V> e, boolean cancelPendingEviction) {
-        delegate.remove(e.getKey(), e);
+    	this.delegate.remove(e.getKey(), e);
         
         if (cancelPendingEviction) {
             cancelEviction(e);
@@ -820,7 +820,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * have just been added to the map.
      */
     private void scheduleEviction(EvictibleEntry<K, V> e) {
-        scheduler.scheduleEviction(e);
+    	this.scheduler.scheduleEviction(e);
     }
 
     /*
@@ -828,7 +828,7 @@ public class ConcurrentMapWithTimedEvictionDecorator<K, V> extends AbstractMap<K
      * just been removed from the map.
      */
     private void cancelEviction(EvictibleEntry<K, V> e) {
-        scheduler.cancelEviction(e);
+    	this.scheduler.cancelEviction(e);
     }
 
     /*

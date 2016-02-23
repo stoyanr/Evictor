@@ -40,11 +40,17 @@ import java.util.Map.Entry;
 public class EvictibleEntry<K, V> implements Entry<K, V> {
 
     private final ConcurrentMapWithTimedEvictionDecorator<K, V> map;
+
     private final K key;
+    
     private volatile V value;
+    
     private final long evictMs;
+    
     private final boolean evictible;
+    
     private final long evictionTime;
+    
     private volatile Object data;
 
     /**
@@ -86,8 +92,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
         this.value = value;
         this.evictMs = evictMs;
         this.evictible = (evictMs > 0);
-        this.evictionTime = (evictible) ? System.nanoTime()
-            + NANOSECONDS.convert(evictMs, MILLISECONDS) : 0;
+        this.evictionTime = (evictible) ? System.nanoTime() + NANOSECONDS.convert(evictMs, MILLISECONDS) : 0;
     }
 
 	/**
@@ -97,7 +102,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 */
     @Override
     public K getKey() {
-        return key;
+        return this.key;
     }
 
     /**
@@ -107,7 +112,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 */
     @Override
     public V getValue() {
-        return value;
+        return this.value;
     }
 
     /**
@@ -124,7 +129,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 *             stored in the backing map
 	 * 
 	 * @throws NullPointerException
-	 *             if the specified value is null
+	 *             if the specified value is <code>null</code>
 	 */
     @Override
     public synchronized V setValue(V value) {
@@ -144,7 +149,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 * @return <tt>true</tt> if the entry is evictible
 	 */
     public boolean isEvictible() {
-        return evictible;
+        return this.evictible;
     }
 
     /**
@@ -155,7 +160,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 * @return the eviction time of this entry in nanoseconds.
 	 */
     public long getEvictionTime() {
-        return evictionTime;
+        return this.evictionTime;
     }
 
     /**
@@ -164,7 +169,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 * @return the additional data associated with this entry
 	 */
     public Object getData() {
-        return data;
+        return this.data;
     }
 
     /**
@@ -185,7 +190,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 * @return <tt>true</tt> if the entry should be evicted
 	 */
     public boolean shouldEvict() {
-        return (evictible) ? (System.nanoTime() > evictionTime) : false;
+        return (this.evictible) ? (System.nanoTime() > this.evictionTime) : false;
     }
 
     /**
@@ -197,7 +202,7 @@ public class EvictibleEntry<K, V> implements Entry<K, V> {
 	 *            cancelled
 	 */
     public void evict(boolean cancelPendingEviction) {
-        map.evict(this, cancelPendingEviction);
+    	this.map.evict(this, cancelPendingEviction);
     }
 
     @Override

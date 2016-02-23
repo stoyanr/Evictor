@@ -149,8 +149,7 @@ public class ConcurrentHashMapWithTimedEviction<K, V> extends ConcurrentMapWithT
 	 *             factor is non-positive
 	 */
     public ConcurrentHashMapWithTimedEviction(int initialCapacity, float loadFactor) {
-        this(initialCapacity, loadFactor, ConcurrentHashMapWithTimedEviction
-            .<K, V> defaultScheduler());
+        this(initialCapacity, loadFactor, ConcurrentHashMapWithTimedEviction.<K, V> defaultScheduler());
     }
 
     /**

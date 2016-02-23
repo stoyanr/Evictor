@@ -92,7 +92,7 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
 	 */
     @Override
     public boolean hasEntries() {
-        return !queue.isEmpty();
+        return !this.queue.isEmpty();
     }
 
     /**
@@ -106,7 +106,7 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
     @Override
     public long getNextEvictionTime() {
         try {
-            return (!queue.isEmpty()) ? queue.peek().getEvictionTime() : 0;
+            return (!this.queue.isEmpty()) ? this.queue.peek().getEvictionTime() : 0;
         } catch (NullPointerException e) {
             // Safeguard in a concurrent environment
             return 0;
@@ -122,7 +122,7 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
 	 */
     @Override
     public void putEntry(EvictibleEntry<K, V> e) {
-        queue.add(e);
+        this.queue.add(e);
     }
 
     /**
@@ -135,7 +135,7 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
 	 */
     @Override
     public void removeEntry(EvictibleEntry<K, V> e) {
-        queue.remove(e);
+        this.queue.remove(e);
     }
 
     /**
@@ -151,8 +151,8 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
     public boolean evictEntries() {
         boolean result = false;
         try {
-            while (!queue.isEmpty() && (queue.peek().getEvictionTime() < System.nanoTime())) {
-                queue.poll().evict(false);
+            while (!this.queue.isEmpty() && (this.queue.peek().getEvictionTime() < System.nanoTime())) {
+            	this.queue.poll().evict(false);
                 result = true;
             }
         } catch (NullPointerException e) {
@@ -177,9 +177,17 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
     public static class EvictibleEntryComparator<K, V> implements Comparator<EvictibleEntry<K, V>> {
 
         @Override
-        public int compare(EvictibleEntry<K, V> e1, EvictibleEntry<K, V> e2) {
-            long t1 = e1.getEvictionTime(), t2 = e2.getEvictionTime();
-            return (t1 > t2) ? 1 : (t1 < t2) ? -1 : 0;
+        public int compare(EvictibleEntry<K, V> entry1, EvictibleEntry<K, V> entry2) {
+            long time1 = entry1.getEvictionTime(), time2 = entry2.getEvictionTime();
+            if(time1 > time2) {
+            	return 1;
+            }
+            
+            if(time1 < time2) {
+            	return -1;
+            }
+            
+            return 0;
         }
     }
 

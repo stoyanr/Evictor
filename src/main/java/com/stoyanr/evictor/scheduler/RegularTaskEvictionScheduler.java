@@ -189,7 +189,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 */
     @Override
     public void shutdown() {
-        executorService.shutdownNow();
+    	this.executorService.shutdownNow();
     }
 
     /**
@@ -206,7 +206,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 */
     @Override
     protected void onScheduleEviction(EvictibleEntry<K, V> e) {
-        if (hasScheduledEvictions() && !active) {
+        if (hasScheduledEvictions() && !this.active) {
             schedule();
         }
     }
@@ -222,7 +222,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 */
     @Override
     protected void onCancelEviction(EvictibleEntry<K, V> e) {
-        if (!hasScheduledEvictions() && active) {
+        if (!hasScheduledEvictions() && this.active) {
             cancel();
         }
     }
@@ -238,7 +238,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 */
     @Override
     protected void onEvictEntries() {
-        if (!hasScheduledEvictions() && active) {
+        if (!hasScheduledEvictions() && this.active) {
             cancel();
         }
     }
@@ -252,9 +252,9 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
     private synchronized void schedule() {
         // Check whether we have evictions scheduled and schedule the task if not currently 
         // active, but there are evictions.
-        active = hasScheduledEvictions();
-        if (future == null && active) {
-            future = executorService.scheduleWithFixedDelay(new EvictionRunnable(), delay, delay, timeUnit);
+    	this.active = hasScheduledEvictions();
+        if (this.future == null && this.active) {
+        	this.future = this.executorService.scheduleWithFixedDelay(new EvictionRunnable(), this.delay, this.delay, this.timeUnit);
         }
     }
 
@@ -267,10 +267,11 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
     private synchronized void cancel() {
         // Check whether we have evictions scheduled and cancel the task if currently active 
         // but there are no evictions.
-        active = hasScheduledEvictions();
-        if (future != null && !active) {
-            future.cancel(false);
-            future = null;
+    	this.active = hasScheduledEvictions();
+        if (this.future != null && !this.active) {
+        	this.future.cancel(false);
+        	this.future = null;
         }
     }
+    
 }
