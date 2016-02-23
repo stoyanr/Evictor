@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.stoyanr.evictor</groupId>
+	<artifactId>evictor-parent</artifactId>
+	<version>1.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Evictor Parent</name>
+    <description>A concurrent map with timed element eviction</description>
+	<url>https://github.com/stoyanr/Evictor</url>
+	
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	
+	<scm>
+		<connection>scm:git:git@github.com:stoyanr/Evictor.git</connection>
+		<developerConnection>scm:git:git@github.com:stoyanr/Evictor.git</developerConnection>
+		<url>git@github.com:stoyanr/Evictor.git</url>
+	</scm>
+	
+	<developers>
+		<developer>
+			<id>stoyanr</id>
+			<name>Stoyan Rachev</name>
+			<email>stoyanr@gmail.com</email>
+		</developer>
+	</developers>
+	
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>13.0.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+	
+	<properties>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	
+	<build>
+		<sourceDirectory>src</sourceDirectory> 
+		<testSourceDirectory>test</testSourceDirectory>
+		<resources>
+			<resource>
+				<directory>${project.basedir}/resources</directory>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>${project.basedir}/resources</directory>
+			</testResource>
+		</testResources>
+		
+		<pluginManagement>
+			<plugins>	
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>2.5.1</version>
+					<configuration>
+						<source>1.7</source>
+						<target>1.7</target>
+					</configuration>
+				</plugin>
+				<plugin>  
+					<groupId>org.apache.maven.plugins</groupId>  
+					<artifactId>maven-javadoc-plugin</artifactId>  
+					<version>2.8.1</version>  
+					<executions>
+						<execution>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>  
+					<groupId>org.apache.maven.plugins</groupId>  
+					<artifactId>maven-source-plugin</artifactId>  
+					<version>2.2</version>  
+					<executions>
+						<execution>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.1</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
+		<profile>
+			<id>deploy-snapshots</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>false</value>
+				</property>
+			</activation>
+			<distributionManagement>
+				<repository>
+					<id>sonatype-nexus-snapshots</id>
+					<name>Nexus Snapshots Repository</name>
+					<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+				</repository>
+			</distributionManagement>	
+		</profile>
+		<profile>
+			<id>deploy-staging</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<distributionManagement>
+				<repository>
+					<id>sonatype-nexus-staging</id>
+					<name>Nexus Staging Repository</name>
+					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+				</repository>
+			</distributionManagement>	
+		</profile>
+	</profiles>	
+		
+    <modules>
+        <module>evictor</module>
+    </modules>
+  
+</project>
