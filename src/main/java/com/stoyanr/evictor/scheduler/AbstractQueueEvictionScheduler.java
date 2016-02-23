@@ -58,8 +58,10 @@ public abstract class AbstractQueueEvictionScheduler<K, V> implements EvictionSc
 	 */
     public AbstractQueueEvictionScheduler(EvictionQueue<K, V> queue) {
         super();
-        if (queue == null)
-            throw new NullPointerException();
+        if (queue == null) {
+            throw new NullPointerException("Queue cannot be null");
+        }
+        
         this.queue = queue;
     }
 

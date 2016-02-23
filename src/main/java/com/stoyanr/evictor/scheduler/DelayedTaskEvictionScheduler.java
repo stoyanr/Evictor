@@ -76,8 +76,11 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 */
     public DelayedTaskEvictionScheduler(ScheduledExecutorService ses) {
         super();
-        if (ses == null)
-            throw new NullPointerException();
+        
+        if (ses == null) {
+            throw new NullPointerException("ScheduledExecutorService instance cannot be null");
+        }
+        
         this.ses = ses;
     }
 
@@ -111,8 +114,10 @@ public class DelayedTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 */
     public DelayedTaskEvictionScheduler(EvictionQueue<K, V> queue, ScheduledExecutorService ses) {
         super(queue);
-        if (ses == null)
-            throw new NullPointerException();
+        if (ses == null) {
+            throw new NullPointerException("ScheduledExecutorService instance cannot be null");
+        }
+        
         this.ses = ses;
     }
 

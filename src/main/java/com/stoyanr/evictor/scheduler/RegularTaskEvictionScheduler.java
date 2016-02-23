@@ -47,13 +47,19 @@ import com.stoyanr.evictor.map.EvictibleEntry;
 public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionScheduler<K, V> {
 
     public static final int DEFAULT_THREAD_POOL_SIZE = 1;
+    
     public static final long DEFAULT_DELAY = 1;
+    
     public static final TimeUnit DEFAULT_TIME_UNIT = MILLISECONDS;
 
-    private final ScheduledExecutorService ses;
+    private final ScheduledExecutorService executorService;
+    
     private final long delay;
+    
     private final TimeUnit timeUnit;
+    
     private volatile ScheduledFuture<?> future = null;
+    
     private volatile boolean active = false;
 
     /**
@@ -63,8 +69,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 * delay of 1 millisecond.
 	 */
     public RegularTaskEvictionScheduler() {
-        this(new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE), DEFAULT_DELAY,
-            DEFAULT_TIME_UNIT);
+        this(new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE), DEFAULT_DELAY, DEFAULT_TIME_UNIT);
     }
 
     /**
@@ -110,11 +115,15 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 */
     public RegularTaskEvictionScheduler(ScheduledExecutorService ses, long delay, TimeUnit timeUnit) {
         super();
-        if (ses == null)
-            throw new NullPointerException();
-        if (delay <= 0)
-            throw new IllegalArgumentException();
-        this.ses = ses;
+        if (ses == null) {
+            throw new NullPointerException("ScheduledExecutorService instance cannot be null");
+        }
+        
+        if (delay <= 0) {
+            throw new IllegalArgumentException("Delay cannot be less than or equal to zero");
+        }
+        
+        this.executorService = ses;
         this.delay = delay;
         this.timeUnit = timeUnit;
     }
@@ -128,8 +137,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 *            the queue to be used
 	 */
     public RegularTaskEvictionScheduler(EvictionQueue<K, V> queue) {
-        this(queue, new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE), DEFAULT_DELAY,
-            DEFAULT_TIME_UNIT);
+        this(queue, new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE), DEFAULT_DELAY, DEFAULT_TIME_UNIT);
     }
 
     /**
@@ -158,11 +166,15 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
     public RegularTaskEvictionScheduler(EvictionQueue<K, V> queue, ScheduledExecutorService ses,
         long delay, TimeUnit timeUnit) {
         super(queue);
-        if (ses == null)
-            throw new NullPointerException();
-        if (delay <= 0)
-            throw new IllegalArgumentException();
-        this.ses = ses;
+        if (ses == null) {
+            throw new NullPointerException("ScheduledExecutorService instance cannot be null");
+        }
+        
+        if (delay <= 0) {
+            throw new IllegalArgumentException("Delay cannot be less than or equal to zero");
+        }
+        
+        this.executorService = ses;
         this.delay = delay;
         this.timeUnit = timeUnit;
     }
@@ -177,7 +189,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
 	 */
     @Override
     public void shutdown() {
-        ses.shutdownNow();
+        executorService.shutdownNow();
     }
 
     /**
@@ -242,7 +254,7 @@ public class RegularTaskEvictionScheduler<K, V> extends AbstractQueueEvictionSch
         // active, but there are evictions.
         active = hasScheduledEvictions();
         if (future == null && active) {
-            future = ses.scheduleWithFixedDelay(new EvictionRunnable(), delay, delay, timeUnit);
+            future = executorService.scheduleWithFixedDelay(new EvictionRunnable(), delay, delay, timeUnit);
         }
     }
 

@@ -43,9 +43,13 @@ import com.stoyanr.evictor.map.EvictibleEntry;
 public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionScheduler<K, V> {
 
     private volatile boolean finished = false;
+    
     private volatile boolean notified = false;
+    
     private volatile long next = 0;
+    
     private final Thread t = new Thread(new EvictionThread());
+    
     private final Object m = new Object();
 
     /**
@@ -89,6 +93,7 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
         try {
             t.join();
         } catch (InterruptedException e) {
+        	// TODO: add this
         }
     }
 
@@ -167,6 +172,7 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
                         break;
                     }
                 }
+                
                 evictEntries();
             }
         }
@@ -181,9 +187,9 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
             if (time > 0) {
                 long x = time - System.nanoTime();
                 return (x != 0) ? x : -1;
-            } else {
-                return 0;
             }
+            
+            return 0;
         }
 
         /**
@@ -201,6 +207,7 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
             } catch (InterruptedException e) {
                 result = false;
             }
+            
             return result;
         }
     }

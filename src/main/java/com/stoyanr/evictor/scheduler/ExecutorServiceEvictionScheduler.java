@@ -43,7 +43,7 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
 
     public static final int DEFAULT_THREAD_POOL_SIZE = 1;
 
-    private final ScheduledExecutorService ses;
+    private final ScheduledExecutorService executorService;
 
     /**
 	 * Creates an eviction scheduler with a
@@ -65,9 +65,11 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
 	 */
     public ExecutorServiceEvictionScheduler(ScheduledExecutorService ses) {
         super();
-        if (ses == null)
-            throw new NullPointerException();
-        this.ses = ses;
+        if (ses == null) {
+            throw new NullPointerException("ScheduledExecutorService instance cannot be null");
+        }
+        
+        this.executorService = ses;
     }
 
     /**
@@ -76,8 +78,7 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
     @Override
     public void scheduleEviction(EvictibleEntry<K, V> e) {
         if (e.isEvictible()) {
-            ScheduledFuture<?> future = ses.schedule(new EvictionRunnable<K, V>(e),
-                Math.max(e.getEvictionTime() - System.nanoTime(), 0), TimeUnit.NANOSECONDS);
+            ScheduledFuture<?> future = executorService.schedule(new EvictionRunnable<K, V>(e), Math.max(e.getEvictionTime() - System.nanoTime(), 0), TimeUnit.NANOSECONDS);
             e.setData(future);
         }
     }
@@ -103,11 +104,12 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
 	 */
     @Override
     public void shutdown() {
-        ses.shutdownNow();
+        this.executorService.shutdownNow();
     }
 
     private static final class EvictionRunnable<K, V> implements Runnable {
-        private final WeakReference<EvictibleEntry<K, V>> er;
+        
+    	private final WeakReference<EvictibleEntry<K, V>> er;
 
         public EvictionRunnable(EvictibleEntry<K, V> e) {
             er = new WeakReference<EvictibleEntry<K, V>>(e);
