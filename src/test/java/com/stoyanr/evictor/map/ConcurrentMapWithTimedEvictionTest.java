@@ -42,6 +42,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+/**
+ * Unit tests
+ * 
+ * @author Stoyan Rachev
+ * @author sangupta
+ *
+ */
 @RunWith(value = Parameterized.class)
 public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWithTimedEvictionTest {
 

@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.stoyanr.evictor.ConcurrentMapWithTimedEviction;
 import com.stoyanr.evictor.EvictionScheduler;
 import com.stoyanr.evictor.queue.PriorityEvictionQueue;
 import com.stoyanr.evictor.scheduler.DelayedTaskEvictionScheduler;
@@ -39,6 +40,13 @@ import com.stoyanr.evictor.scheduler.NullEvictionScheduler;
 import com.stoyanr.evictor.scheduler.RegularTaskEvictionScheduler;
 import com.stoyanr.evictor.scheduler.SingleThreadEvictionScheduler;
 
+/**
+ * Common test cases for {@link ConcurrentMapWithTimedEviction} implementations.
+ * 
+ * @author Stoyan Rachev
+ * @author sangupta
+ *
+ */
 public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
     public static final String VALUE = "value";

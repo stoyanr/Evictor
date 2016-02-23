@@ -20,6 +20,14 @@ package com.stoyanr.evictor.scheduler;
 import com.stoyanr.evictor.EvictionScheduler;
 import com.stoyanr.evictor.map.EvictibleEntry;
 
+/**
+ * A simple {@link EvictionScheduler} implementation that does nothing.
+ * 
+ * @author sangupta
+ *
+ * @param <K>
+ * @param <V>
+ */
 public class NullEvictionScheduler<K, V> implements EvictionScheduler<K, V> {
 
     @Override

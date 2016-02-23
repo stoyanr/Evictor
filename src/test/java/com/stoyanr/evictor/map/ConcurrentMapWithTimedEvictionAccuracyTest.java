@@ -34,6 +34,13 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.stoyanr.evictor.EvictionScheduler;
 
+/**
+ * Unit tests
+ * 
+ * @author Stoyan Rachev
+ * @author sangupta
+ *
+ */
 @RunWith(value = Parameterized.class)
 public class ConcurrentMapWithTimedEvictionAccuracyTest extends
     AbstractConcurrentMapWithTimedEvictionTest {
