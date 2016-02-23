@@ -14,6 +14,9 @@ Following changes have been made/are to be made to this fork:
 * Modified code for better readability and checks
 * Removed eclipse-specific files
 * Removed the module - the top-level POM is the project POM
+* Improved exception messages
+* Some code formatting
+* Simple travis-ci.org and coveralls.io integration
 
 
 ## Introduction
