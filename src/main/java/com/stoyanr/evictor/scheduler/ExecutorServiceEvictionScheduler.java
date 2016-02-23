@@ -27,12 +27,17 @@ import com.stoyanr.evictor.EvictionScheduler;
 import com.stoyanr.evictor.map.EvictibleEntry;
 
 /**
- * An {@link EvictionScheduler} which uses a {@link java.util.concurrent.ScheduledExecutorService}
- * to schedule multiple tasks for entries that should be evicted, one task per entry.
+ * An {@link EvictionScheduler} which uses a
+ * {@link java.util.concurrent.ScheduledExecutorService} to schedule multiple
+ * tasks for entries that should be evicted, one task per entry.
  * 
  * @author Stoyan Rachev
- * @param <K> the type of keys maintained by this map
- * @param <V> the type of mapped values
+ *
+ * @param <K>
+ *            the type of keys maintained by this map
+ * 
+ * @param <V>
+ *            the type of mapped values
  */
 public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler<K, V> {
 
@@ -41,19 +46,23 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
     private final ScheduledExecutorService ses;
 
     /**
-     * Creates an eviction scheduler with a {@link java.util.concurrent.ScheduledThreadPoolExecutor}
-     * .
-     */
+	 * Creates an eviction scheduler with a
+	 * {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
+	 */
     public ExecutorServiceEvictionScheduler() {
         this(new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE));
     }
 
     /**
-     * Creates an eviction scheduler with the specified scheduled executor service.
-     * 
-     * @param ses the scheduled executor service to be used
-     * @throws NullPointerException if the scheduled executor service is null
-     */
+	 * Creates an eviction scheduler with the specified scheduled executor
+	 * service.
+	 * 
+	 * @param ses
+	 *            the scheduled executor service to be used
+	 *            
+	 * @throws NullPointerException
+	 *             if the scheduled executor service is <code>null</code>
+	 */
     public ExecutorServiceEvictionScheduler(ScheduledExecutorService ses) {
         super();
         if (ses == null)
@@ -85,12 +94,13 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
     }
 
     /**
-     * {@inheritDoc}
-     * 
-     * <p>
-     * This implementation simply invokes the <tt>shutdownNow</tt> method on the scheduled executor
-     * service.
-     */
+	 * {@inheritDoc}
+	 * 
+	 * <p>
+	 * This implementation simply invokes the <tt>shutdownNow</tt> method on the
+	 * scheduled executor service.
+	 * </p>
+	 */
     @Override
     public void shutdown() {
         ses.shutdownNow();
