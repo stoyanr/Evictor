@@ -1,3 +1,9 @@
+# Evictor - A concurrent map with timed element eviction
+
+[![Build Status](https://travis-ci.org/sangupta/Evictor.svg?branch=master)](https://travis-ci.org/sangupta/Evictor)
+[![Coverage Status](https://coveralls.io/repos/sangupta/Evictor/badge.png)](https://coveralls.io/r/sangupta/Evictor)
+
+
 ## Changes from original project: github:stoyanr/Evictor
 
 Following changes have been made/are to be made to this fork:
