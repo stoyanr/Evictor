@@ -9,7 +9,7 @@
 		<version>9</version>
 	</parent>
 	
-	<groupId>com.sangupta</groupId>
+	<groupId>com.stoyanr</groupId>
 	<artifactId>evictor</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
