@@ -43,49 +43,49 @@ import com.stoyanr.evictor.map.EvictibleEntry;
 public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionScheduler<K, V> {
 
     private volatile boolean finished = false;
-    
+
     private volatile boolean notified = false;
-    
+
     private volatile long next = 0;
-    
+
     private final Thread evictionThread = new Thread(new EvictionThread());
-    
+
     private final Object mutex = new Object();
 
     /**
-	 * Creates a single thread eviction scheduler with the default queue
-	 * implementation (see {@link AbstractQueueEvictionScheduler}). This
-	 * constructor starts the eviction thread, which will remain active until
-	 * the shutdown method is called.
-	 */
+     * Creates a single thread eviction scheduler with the default queue
+     * implementation (see {@link AbstractQueueEvictionScheduler}). This
+     * constructor starts the eviction thread, which will remain active until
+     * the shutdown method is called.
+     */
     public SingleThreadEvictionScheduler() {
         super();
         evictionThread.start();
     }
 
     /**
-	 * Creates a single thread eviction scheduler with the specified queue. This
-	 * constructor starts the eviction thread, which will remain active until
-	 * the shutdown method is called.
-	 * 
-	 * @param queue
-	 *            the queue to be used
-	 *            
-	 * @throws NullPointerException
-	 *             if the queue is <code>null</code>
-	 */
+     * Creates a single thread eviction scheduler with the specified queue. This
+     * constructor starts the eviction thread, which will remain active until
+     * the shutdown method is called.
+     * 
+     * @param queue
+     *            the queue to be used
+     * 
+     * @throws NullPointerException
+     *             if the queue is <code>null</code>
+     */
     public SingleThreadEvictionScheduler(EvictionQueue<K, V> queue) {
         super(queue);
         evictionThread.start();
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation causes the eviction thread to terminate.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation causes the eviction thread to terminate.
+     * </p>
+     */
     @Override
     public void shutdown() {
         finished = true;
@@ -93,19 +93,19 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
         try {
             evictionThread.join();
         } catch (InterruptedException e) {
-        	// TODO: add this
+            // TODO: add this
         }
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation checks if the current next eviction time is different
-	 * from the last next eviction time, and if so notifies the eviction thread,
-	 * causing it to wake-up and recalculate its waiting time.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation checks if the current next eviction time is different
+     * from the last next eviction time, and if so notifies the eviction thread,
+     * causing it to wake-up and recalculate its waiting time.
+     * </p>
+     */
     @Override
     protected void onScheduleEviction(EvictibleEntry<K, V> e) {
         if (getNextEvictionTime() != next) {
@@ -117,14 +117,14 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation checks if the current next eviction time is different
-	 * from the last next eviction time, and if so notifies the eviction thread,
-	 * causing it to wake-up and recalculate its waiting time.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation checks if the current next eviction time is different
+     * from the last next eviction time, and if so notifies the eviction thread,
+     * causing it to wake-up and recalculate its waiting time.
+     * </p>
+     */
     @Override
     protected void onCancelEviction(EvictibleEntry<K, V> e) {
         if (getNextEvictionTime() != next) {
@@ -136,12 +136,12 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation does nothing.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation does nothing.
+     * </p>
+     */
     @Override
     protected void onEvictEntries() {
         // Do nothing
@@ -153,8 +153,8 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
     final class EvictionThread implements Runnable {
 
         /**
-		 * Runs the eviction thread.
-		 */
+         * Runs the eviction thread.
+         */
         @Override
         public void run() {
             while (!finished) {
@@ -163,7 +163,7 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
                 while (timeout >= 0) {
                     // The timeout is 0 (forever) or positive - wait
                     if (!waitFor(timeout) && !finished) {
-                        // The timeout did not expire and we are not finished - 
+                        // The timeout did not expire and we are not finished -
                         // calculate the next timeout
                         next = getNextEvictionTime();
                         timeout = calcTimeout(next);
@@ -172,30 +172,30 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
                         break;
                     }
                 }
-                
+
                 evictEntries();
             }
         }
 
         /**
-		 * Calculates the wait timeout (in nanoseconds) to the specified moment
-		 * in time (in nanoseconds). If the time is 0 (forever), return also 0
-		 * (forever). A negative value returned from this method means that no
-		 * waiting should happen.
-		 */
+         * Calculates the wait timeout (in nanoseconds) to the specified moment
+         * in time (in nanoseconds). If the time is 0 (forever), return also 0
+         * (forever). A negative value returned from this method means that no
+         * waiting should happen.
+         */
         private long calcTimeout(long time) {
             if (time > 0) {
                 long x = time - System.nanoTime();
                 return (x != 0) ? x : -1;
             }
-            
+
             return 0;
         }
 
         /**
-		 * Waits for the specified timeout (in nanoseconds). Returns true if the
-		 * timeout expired and false if thread was notified or interrupted.
-		 */
+         * Waits for the specified timeout (in nanoseconds). Returns true if the
+         * timeout expired and false if thread was notified or interrupted.
+         */
         private boolean waitFor(long timeout) {
             boolean result = true;
             try {
@@ -207,7 +207,7 @@ public class SingleThreadEvictionScheduler<K, V> extends AbstractQueueEvictionSc
             } catch (InterruptedException e) {
                 result = false;
             }
-            
+
             return result;
         }
     }

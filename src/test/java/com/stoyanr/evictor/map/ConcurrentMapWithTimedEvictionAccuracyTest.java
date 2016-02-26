@@ -42,23 +42,18 @@ import com.stoyanr.evictor.EvictionScheduler;
  *
  */
 @RunWith(value = Parameterized.class)
-public class ConcurrentMapWithTimedEvictionAccuracyTest extends
-    AbstractConcurrentMapWithTimedEvictionTest {
+public class ConcurrentMapWithTimedEvictionAccuracyTest extends AbstractConcurrentMapWithTimedEvictionTest {
 
     private static final int NUM_THREADS = 5;
+    
     private static final int NUM_ITERATIONS = 3;
+    
     private static final int EVICT_MS = 5 * 1000;
 
     @Parameters
     public static Collection<Object[]> data() {
         // @formatter:off
-        return Arrays.asList(new Object[][] { 
-            { IMPL_CHMWTE_ESS }, 
-            { IMPL_CHMWTE_NM_RT },
-            { IMPL_CHMWTE_NM_DT },
-            { IMPL_CHMWTE_NM_ST },
-            { IMPL_CHMWTE_PQ_ST },
-        });
+        return Arrays.asList(new Object[][] { { IMPL_CHMWTE_ESS }, { IMPL_CHMWTE_NM_RT }, { IMPL_CHMWTE_NM_DT }, { IMPL_CHMWTE_NM_ST }, { IMPL_CHMWTE_PQ_ST }, });
         // @formatter:on
     }
 
@@ -82,8 +77,7 @@ public class ConcurrentMapWithTimedEvictionAccuracyTest extends
         System.out.printf("Sleeping for %d ms\n", evictMs);
         Thread.sleep(evictMs);
         assertEquals(0, mapx.size());
-        System.out.printf("Min: %.2f us, Max: %.2f us, Average: %.2f us\n", mapx.min, mapx.max,
-            mapx.sum / (numThreads * numIterations));
+        System.out.printf("Min: %.2f us, Max: %.2f us, Average: %.2f us\n", mapx.min, mapx.max, mapx.sum / (numThreads * numIterations));
         super.tearDown();
     }
 
@@ -105,8 +99,7 @@ public class ConcurrentMapWithTimedEvictionAccuracyTest extends
         case IMPL_CHMWTE_NM_ST:
         case IMPL_CHMWTE_PQ_ST:
             map = new TestConcurrentMapWithTimedEvictionDecorator<Integer, String>(
-                new ConcurrentHashMap<Integer, EvictibleEntry<Integer, String>>(capacity,
-                    LOAD_FACTOR, numThreads), scheduler);
+                    new ConcurrentHashMap<Integer, EvictibleEntry<Integer, String>>(capacity, LOAD_FACTOR, numThreads), scheduler);
             break;
         }
     }
@@ -133,13 +126,11 @@ public class ConcurrentMapWithTimedEvictionAccuracyTest extends
         return (long) (Math.random() * evictMs);
     }
 
-    private class TestConcurrentMapWithTimedEvictionDecorator<K, V> extends
-        ConcurrentMapWithTimedEvictionDecorator<K, V> {
+    private class TestConcurrentMapWithTimedEvictionDecorator<K, V> extends ConcurrentMapWithTimedEvictionDecorator<K, V> {
 
         private double max = Double.MIN_VALUE, min = Double.MAX_VALUE, sum = 0;
 
-        public TestConcurrentMapWithTimedEvictionDecorator(
-            ConcurrentMap<K, EvictibleEntry<K, V>> delegate, EvictionScheduler<K, V> scheduler) {
+        public TestConcurrentMapWithTimedEvictionDecorator(ConcurrentMap<K, EvictibleEntry<K, V>> delegate, EvictionScheduler<K, V> scheduler) {
             super(delegate, scheduler);
         }
 

@@ -53,20 +53,23 @@ import org.junit.runners.Parameterized.Parameters;
 public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWithTimedEvictionTest {
 
     private static final int NUM_ITERATIONS = 10;
+    
     private static final int EVICT_MS = 8;
+    
     private static final int DELAY_MS = 20;
 
     @Parameters
     public static Collection<Object[]> data() {
-        // @formatter:off
-        return Arrays.asList(new Object[][] { 
-            { IMPL_CHMWTE_ESS, 1 }, { IMPL_CHMWTE_ESS, 50 }, 
-            { IMPL_CHMWTE_NM_RT, 1 }, { IMPL_CHMWTE_NM_RT, 50 },  
-            { IMPL_CHMWTE_NM_DT, 1 }, { IMPL_CHMWTE_NM_DT, 50 },  
-            { IMPL_CHMWTE_NM_ST, 1 }, { IMPL_CHMWTE_NM_ST, 50 },  
-            { IMPL_CHMWTE_PQ_ST, 1 }, { IMPL_CHMWTE_PQ_ST, 50 },  
-        });
-        // @formatter:on
+        return Arrays.asList(new Object[][] { { IMPL_CHMWTE_ESS, 1 } 
+                                              , { IMPL_CHMWTE_ESS, 50 }
+                                              , { IMPL_CHMWTE_NM_RT, 1 }
+                                              , { IMPL_CHMWTE_NM_RT, 50 }
+                                              , { IMPL_CHMWTE_NM_DT, 1 }
+                                              , { IMPL_CHMWTE_NM_DT, 50 }
+                                              , { IMPL_CHMWTE_NM_ST, 1 }
+                                              , { IMPL_CHMWTE_NM_ST, 50 }
+                                              , { IMPL_CHMWTE_PQ_ST, 1 }
+                                              , { IMPL_CHMWTE_PQ_ST, 50 } });
     }
 
     private ConcurrentMapWithTimedEvictionDecorator<Integer, String> map;
@@ -630,8 +633,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         Map<Integer, String> m = asMap(Arrays.asList(1, 2, 3));
         map.putAll(m);
         Set<Entry<Integer, String>> es = map.entrySet();
-        EvictibleEntry<Integer, String> e0 = new EvictibleEntry<Integer, String>(map, 0,
-            getValue(0), 0);
+        EvictibleEntry<Integer, String> e0 = new EvictibleEntry<Integer, String>(map, 0, getValue(0), 0);
         long t0 = System.nanoTime();
         assertNull(map.put(0, getValue(0), evictMs));
         assertQueueSize(1);
@@ -707,8 +709,7 @@ public class ConcurrentMapWithTimedEvictionTest extends AbstractConcurrentMapWit
         assertQueueSize(1);
         long t1 = System.nanoTime();
         map.put(id2, value2, evictMs * 2);
-        assertTrue((map.size() == 2) || ((map.size() == 1) && tooLate(t0))
-            || ((map.size() == 0) && tooLate(t1, 2)));
+        assertTrue((map.size() == 2) || ((map.size() == 1) && tooLate(t0)) || ((map.size() == 0) && tooLate(t1, 2)));
         Thread.sleep(evictMs + DELAY_MS);
         assertTrue((map.size() == 1) || ((map.size() == 0) && tooLate(t1, 2)));
         Thread.sleep(evictMs * 2 + DELAY_MS);

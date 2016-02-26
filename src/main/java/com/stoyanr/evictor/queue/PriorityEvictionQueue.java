@@ -51,58 +51,58 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
     private final Queue<EvictibleEntry<K, V>> queue;
 
     /**
-	 * Creates a priority eviction queue with a
-	 * {@link java.util.concurrent.PriorityBlockingQueue} with the specified
-	 * initial capacity.
-	 * 
-	 * @param initialCapacity
-	 *            the initial capacity
-	 * 
-	 * @throws IllegalArgumentException
-	 *             if initial capacity is less than 1
-	 */
+     * Creates a priority eviction queue with a
+     * {@link java.util.concurrent.PriorityBlockingQueue} with the specified
+     * initial capacity.
+     * 
+     * @param initialCapacity
+     *            the initial capacity
+     * 
+     * @throws IllegalArgumentException
+     *             if initial capacity is less than 1
+     */
     public PriorityEvictionQueue(int initialCapacity) {
         this(new PriorityBlockingQueue<EvictibleEntry<K, V>>(initialCapacity, new EvictibleEntryComparator<K, V>()));
     }
 
     /**
-	 * Creates a priority eviction queue with the specified queue.
-	 * 
-	 * @param queue
-	 *            the queue to be used
-	 *            
-	 * @throws NullPointerException
-	 *             if the queue is <code>null</code>
-	 */
+     * Creates a priority eviction queue with the specified queue.
+     * 
+     * @param queue
+     *            the queue to be used
+     * 
+     * @throws NullPointerException
+     *             if the queue is <code>null</code>
+     */
     public PriorityEvictionQueue(Queue<EvictibleEntry<K, V>> queue) {
         if (queue == null) {
             throw new NullPointerException("Queue instance cannot be null");
         }
-        
+
         this.queue = queue;
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation simply returns true if the queue is non-empty and
-	 * vice versa.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation simply returns true if the queue is non-empty and
+     * vice versa.
+     * </p>
+     */
     @Override
     public boolean hasEntries() {
         return !this.queue.isEmpty();
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation simply returns the eviction time of the first entry
-	 * in the queue if it is non-empty, or 0 otherwise.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation simply returns the eviction time of the first entry
+     * in the queue if it is non-empty, or 0 otherwise.
+     * </p>
+     */
     @Override
     public long getNextEvictionTime() {
         try {
@@ -114,45 +114,45 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation simply invokes the <tt>add</tt> method on the queue.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation simply invokes the <tt>add</tt> method on the queue.
+     * </p>
+     */
     @Override
     public void putEntry(EvictibleEntry<K, V> e) {
         this.queue.add(e);
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation simply invokes the <tt>remove</tt> method on the
-	 * queue.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation simply invokes the <tt>remove</tt> method on the
+     * queue.
+     * </p>
+     */
     @Override
     public void removeEntry(EvictibleEntry<K, V> e) {
         this.queue.remove(e);
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation uses the <tt>peek</tt> and <tt>poll</tt> method on
-	 * the queue repeatedly to find and remove all entries that should be
-	 * evicted, evicting them via their <tt>evict</tt> method.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation uses the <tt>peek</tt> and <tt>poll</tt> method on
+     * the queue repeatedly to find and remove all entries that should be
+     * evicted, evicting them via their <tt>evict</tt> method.
+     * </p>
+     */
     @Override
     public boolean evictEntries() {
         boolean result = false;
         try {
             while (!this.queue.isEmpty() && (this.queue.peek().getEvictionTime() < System.nanoTime())) {
-            	this.queue.poll().evict(false);
+                this.queue.poll().evict(false);
                 result = true;
             }
         } catch (NullPointerException e) {
@@ -162,31 +162,31 @@ public class PriorityEvictionQueue<K, V> implements EvictionQueue<K, V> {
     }
 
     /**
-	 * A comparator that compares {@link EvictibleEntry} instances based on
-	 * their eviction time.
-	 * 
-	 * @author Stoyan Rachev
-	 * 
-	 * @param <K>
-	 *            the type of keys maintained by this map
-	 * 
-	 * @param <V>
-	 *            the type of mapped values
-	 *            
-	 */
+     * A comparator that compares {@link EvictibleEntry} instances based on
+     * their eviction time.
+     * 
+     * @author Stoyan Rachev
+     * 
+     * @param <K>
+     *            the type of keys maintained by this map
+     * 
+     * @param <V>
+     *            the type of mapped values
+     * 
+     */
     public static class EvictibleEntryComparator<K, V> implements Comparator<EvictibleEntry<K, V>> {
 
         @Override
         public int compare(EvictibleEntry<K, V> entry1, EvictibleEntry<K, V> entry2) {
             long time1 = entry1.getEvictionTime(), time2 = entry2.getEvictionTime();
-            if(time1 > time2) {
-            	return 1;
+            if (time1 > time2) {
+                return 1;
             }
-            
-            if(time1 < time2) {
-            	return -1;
+
+            if (time1 < time2) {
+                return -1;
             }
-            
+
             return 0;
         }
     }

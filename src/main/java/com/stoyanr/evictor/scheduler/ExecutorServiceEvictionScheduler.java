@@ -46,29 +46,29 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
     private final ScheduledExecutorService executorService;
 
     /**
-	 * Creates an eviction scheduler with a
-	 * {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
-	 */
+     * Creates an eviction scheduler with a
+     * {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
+     */
     public ExecutorServiceEvictionScheduler() {
         this(new ScheduledThreadPoolExecutor(DEFAULT_THREAD_POOL_SIZE));
     }
 
     /**
-	 * Creates an eviction scheduler with the specified scheduled executor
-	 * service.
-	 * 
-	 * @param executorService
-	 *            the scheduled executor service to be used
-	 *            
-	 * @throws NullPointerException
-	 *             if the scheduled executor service is <code>null</code>
-	 */
+     * Creates an eviction scheduler with the specified scheduled executor
+     * service.
+     * 
+     * @param executorService
+     *            the scheduled executor service to be used
+     * 
+     * @throws NullPointerException
+     *             if the scheduled executor service is <code>null</code>
+     */
     public ExecutorServiceEvictionScheduler(ScheduledExecutorService executorService) {
         super();
         if (executorService == null) {
             throw new NullPointerException("ScheduledExecutorService instance cannot be null");
         }
-        
+
         this.executorService = executorService;
     }
 
@@ -95,21 +95,21 @@ public class ExecutorServiceEvictionScheduler<K, V> implements EvictionScheduler
     }
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 * <p>
-	 * This implementation simply invokes the <tt>shutdownNow</tt> method on the
-	 * scheduled executor service.
-	 * </p>
-	 */
+     * {@inheritDoc}
+     * 
+     * <p>
+     * This implementation simply invokes the <tt>shutdownNow</tt> method on the
+     * scheduled executor service.
+     * </p>
+     */
     @Override
     public void shutdown() {
         this.executorService.shutdownNow();
     }
 
     private static final class EvictionRunnable<K, V> implements Runnable {
-        
-    	private final WeakReference<EvictibleEntry<K, V>> er;
+
+        private final WeakReference<EvictibleEntry<K, V>> er;
 
         public EvictionRunnable(EvictibleEntry<K, V> e) {
             er = new WeakReference<EvictibleEntry<K, V>>(e);

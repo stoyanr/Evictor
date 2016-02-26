@@ -29,6 +29,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.stoyanr.evictor.ConcurrentMapWithTimedEviction;
@@ -49,40 +52,61 @@ import com.stoyanr.evictor.scheduler.SingleThreadEvictionScheduler;
  */
 public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConcurrentMapWithTimedEvictionTest.class);
+
     public static final String VALUE = "value";
+    
     public static final String VALUE2 = "valuex";
+    
     public static final long TIMEOUT_MS = 60 * 60 * 1000;
+    
     public static final int MAX_EVICTION_THREADS = 1;
+    
     public static final int MAX_MAP_SIZE = 1000000;
+    
     public static final float LOAD_FACTOR = 0.75f;
 
     public static final int RESULT_PASSED = 0;
+    
     public static final int RESULT_INTERRUPTED = -1;
+    
     public static final int RESULT_ASSERTION_FAILED = -2;
 
     public static final int IMPL_CHM = 0;
+    
     public static final int IMPL_GUAVA_CACHE = -1; // Guava cache
-    public static final int IMPL_GUAVA_CACHE_E = -2; // Evicting Guava cache 
+    
+    public static final int IMPL_GUAVA_CACHE_E = -2; // Evicting Guava cache
+    
     public static final int IMPL_CHMWTE_NULL = 1; // Null
+    
     public static final int IMPL_CHMWTE_ESS = 2; // ExecutionService
+    
     public static final int IMPL_CHMWTE_NM_RT = 3; // RegularTask with NavigableMap
+    
     public static final int IMPL_CHMWTE_NM_DT = 4; // DelayedTask with NavigableMap
+    
     public static final int IMPL_CHMWTE_NM_ST = 5; // SingleThread with NavigableMap
 
     public static final int IMPL_CHMWTE_PQ_ST = 15; // SingleThread with PriorityQueue
 
     protected final int impl;
+    
     protected final long evictMs;
+    
     protected final int numThreads;
+    
     protected final int numIterations;
 
     protected ScheduledThreadPoolExecutor evictionExecutor;
+    
     protected EvictionScheduler<Integer, String> scheduler;
+    
     protected ConcurrentMap<Integer, String> map;
+    
     protected ThreadPoolExecutor testExecutor;
 
-    public AbstractConcurrentMapWithTimedEvictionTest(int impl, long evictMs, int numThreads,
-        int numIterations) {
+    public AbstractConcurrentMapWithTimedEvictionTest(int impl, long evictMs, int numThreads, int numIterations) {
         super();
         this.impl = impl;
         this.evictMs = evictMs;
@@ -126,8 +150,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
             scheduler = new ExecutorServiceEvictionScheduler<Integer, String>(evictionExecutor);
             break;
         case IMPL_CHMWTE_NM_RT:
-            scheduler = new RegularTaskEvictionScheduler<Integer, String>(evictionExecutor, 750,
-                MICROSECONDS);
+            scheduler = new RegularTaskEvictionScheduler<Integer, String>(evictionExecutor, 750, MICROSECONDS);
             break;
         case IMPL_CHMWTE_NM_DT:
             scheduler = new DelayedTaskEvictionScheduler<Integer, String>(evictionExecutor);
@@ -137,8 +160,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
             break;
         case IMPL_CHMWTE_PQ_ST:
             int capacity = Math.min(numThreads * numIterations, MAX_MAP_SIZE);
-            scheduler = new SingleThreadEvictionScheduler<Integer, String>(
-                new PriorityEvictionQueue<Integer, String>(capacity));
+            scheduler = new SingleThreadEvictionScheduler<Integer, String>(new PriorityEvictionQueue<Integer, String>(capacity));
             break;
         }
     }
@@ -154,8 +176,7 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
             map = cache.asMap();
             break;
         case IMPL_GUAVA_CACHE_E:
-            Cache<Integer, String> cachex = CacheBuilder.newBuilder()
-                .expireAfterWrite(evictMs, TimeUnit.MILLISECONDS).build();
+            Cache<Integer, String> cachex = CacheBuilder.newBuilder().expireAfterWrite(evictMs, TimeUnit.MILLISECONDS).build();
             map = cachex.asMap();
             break;
         case IMPL_CHMWTE_NULL:
@@ -164,15 +185,13 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
         case IMPL_CHMWTE_NM_DT:
         case IMPL_CHMWTE_NM_ST:
         case IMPL_CHMWTE_PQ_ST:
-            map = new ConcurrentHashMapWithTimedEviction<Integer, String>(capacity, LOAD_FACTOR,
-                numThreads, scheduler);
+            map = new ConcurrentHashMapWithTimedEviction<Integer, String>(capacity, LOAD_FACTOR, numThreads, scheduler);
             break;
         }
     }
 
     private void createTestExecutor() {
-        testExecutor = new ThreadPoolExecutor(numThreads, Integer.MAX_VALUE, 0, NANOSECONDS,
-            new ArrayBlockingQueue<Runnable>(numThreads, true));
+        testExecutor = new ThreadPoolExecutor(numThreads, Integer.MAX_VALUE, 0, NANOSECONDS, new ArrayBlockingQueue<Runnable>(numThreads, true));
     }
 
     protected interface TestTask {
@@ -222,10 +241,8 @@ public abstract class AbstractConcurrentMapWithTimedEvictionTest {
 
     private void printHeader(String name) {
         // @formatter:off
-        System.out.printf("%s(%s), %d ms, %d threads, %d iterations: %s\n", 
-            map.getClass().getSimpleName(), 
-            ((scheduler != null) ? scheduler.getClass().getSimpleName() : ""),
-            evictMs, numThreads, numIterations, name);
+        System.out.printf("%s(%s), %d ms, %d threads, %d iterations: %s\n", map.getClass().getSimpleName(), ((scheduler != null) ? scheduler.getClass().getSimpleName() : ""),
+                evictMs, numThreads, numIterations, name);
         // @formatter:on
     }
 
