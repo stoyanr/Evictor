@@ -1,2 +1,41 @@
-/*/target/
-/target/
+# Java noise
+*.class
+
+# SVN directories
+.svn
+
+# OSX noise
+.DS_Store
+*.pbxuser
+profile
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Windows noise
+desktop.ini
+Thumbs.db
+
+# Eclipse/Flash Builder noise
+.actionScriptProperties
+.flexProperties
+.project
+.classpath
+bin/*
+bin-debug/*
+report/*
+bin-test/*
+docs/*
+.flexLibProperties
+
+# Maven noise
+target/*
+
+# Project specific
+*/.settings/*
+*/target/*
+*/.gitignore
+.settings/*
+/target
