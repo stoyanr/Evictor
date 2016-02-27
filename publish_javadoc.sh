@@ -8,7 +8,7 @@ git checkout gh-pages
 
 rm -rf javadoc
 mkdir javadoc
-cp target/site/apidocs/* javadoc/*
+cp -r target/apidocs/* javadoc/
 
 git add .
 git commit -m "Updated javadoc"

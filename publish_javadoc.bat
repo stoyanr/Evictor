@@ -8,7 +8,7 @@ call git checkout gh-pages
 
 rd /s /q javadoc
 md javadoc
-xcopy /s target\site\apidocs\* javadoc
+xcopy /s target\apidocs\* javadoc
 
 call git add .
 call git commit -m "Updated javadoc"
