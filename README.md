@@ -1,3 +1,9 @@
+# Evictor - A concurrent map with timed element eviction
+
+[![Build Status](https://travis-ci.org/sangupta/Evictor.svg?branch=master)](https://travis-ci.org/sangupta/Evictor)
+[![Coverage Status](https://coveralls.io/repos/sangupta/Evictor/badge.png)](https://coveralls.io/r/sangupta/Evictor)
+
+
 ## Introduction
 
 **Evictor** is a Java library providing an implementation of `java.util.concurrent.ConcurrentMap` that supports timed entry eviction for caching. It is easy to use, thread-safe, very fast, and highly composable. It actually won a [programming contest](http://www.cayetanogaming.com/javatask) in which the submissions were judged for thread safety, performance, and design.
