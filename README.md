@@ -73,12 +73,13 @@ ConcurrentMapWithTimedEviction<Integer, String> map =
     new ConcurrentHashMapWithTimedEviction<>(100, 0.75f, 8, scheduler);
 ```
 See:
-* [ConcurrentMapWithTimedEviction.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/ConcurrentMapWithTimedEviction.java)
-* [ConcurrentHashMapWithTimedEviction.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/map/ConcurrentHashMapWithTimedEviction.java)
+* [ConcurrentMapWithTimedEviction.java](src/main/java/com/stoyanr/evictor/ConcurrentMapWithTimedEviction.java)
+* [ConcurrentHashMapWithTimedEviction.java](src/main/java/com/stoyanr/evictor/map/ConcurrentHashMapWithTimedEviction.java)
 
 ### Decorating a Custom ConcurrentMap Implementation
 
-The class `ConcurrentHashMapWithTimedEviction` inherits from `ConcurrentMapWithTimedEvictionDecorator` and supplies a `ConcurrentHashMap` as a delegate. If you would like to pass a different `ConcurrentMap` implementation, you could use the `ConcurrentMapWithTimedEvictionDecorator` class directly. For example, here is how you could use Google Guava to create the underlying map:
+The class `ConcurrentHashMapWithTimedEviction` inherits from `ConcurrentMapWithTimedEvictionDecorator` and supplies a `ConcurrentHashMap` as a delegate. If you would like to pass a different `ConcurrentMap` implementation, you could use the `ConcurrentMapWithTimedEvictionDecorator` class directly. For example, here is how you could use Google Guava to create t
+he underlying map:
 
 ```java
 // Create a concurrent hash map with Guava
@@ -91,7 +92,7 @@ ConcurrentMapWithTimedEviction<Integer, String> map =
 ```
 
 See:
-* [ConcurrentMapWithTimedEvictionDecorator.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionDecorator.java)
+* [ConcurrentMapWithTimedEvictionDecorator.java](src/main/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionDecorator.java)
 
 ### Eviction Schedulers
 
@@ -109,11 +110,11 @@ Regarding performance, under heavy contention the last three queue-based schedul
 Note that you can create a single eviction scheduler and use it with multiple maps.
 
 See:
-* [EvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/EvictionScheduler.java)
-* [ExecutorServiceEvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/scheduler/ExecutorServiceEvictionScheduler.java)
-* [RegularTaskEvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/scheduler/RegularTaskEvictionScheduler.java)
-* [DelayedTaskEvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/scheduler/DelayedTaskEvictionScheduler.java)
-* [SingleThreadEvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/scheduler/SingleThreadEvictionScheduler.java)
+* [EvictionScheduler.java](src/main/java/com/stoyanr/evictor/EvictionScheduler.java)
+* [ExecutorServiceEvictionScheduler.java](src/main/java/com/stoyanr/evictor/scheduler/ExecutorServiceEvictionScheduler.java)
+* [RegularTaskEvictionScheduler.java](src/main/java/com/stoyanr/evictor/scheduler/RegularTaskEvictionScheduler.java)
+* [DelayedTaskEvictionScheduler.java](src/main/java/com/stoyanr/evictor/scheduler/DelayedTaskEvictionScheduler.java)
+* [SingleThreadEvictionScheduler.java](src/main/java/com/stoyanr/evictor/scheduler/SingleThreadEvictionScheduler.java)
 
 ### Eviction Queues
 
@@ -127,9 +128,9 @@ For both queue types, the actual navigable map or queue implementation can be pa
 Regarding performance, `NavigableMapEvictionQueue` with its default map significantly outperforms `PriorityEvictionQueue` with its default queue. Therefore, all three schedulers mentioned above use `NavigableMapEvictionQueue` by default. Normally, you would not need to change this, unless you have a priority queue implementation which can outperform `java.util.concurrent.ConcurrentSkipListMap` in a concurrent environment. In this case, you could implement the `EvictionQueue` interface yourself and pass it to the appropriate scheduler.
 
 See:
-* [EvictionQueue.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/EvictionQueue.java)
-* [NavigableMapEvictionQueue.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/queue/NavigableMapEvictionQueue.java)
-* [PriorityEvictionQueue.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/queue/PriorityEvictionQueue.java)
+* [EvictionQueue.java](src/main/java/com/stoyanr/evictor/EvictionQueue.java)
+* [NavigableMapEvictionQueue.java](src/main/java/com/stoyanr/evictor/queue/NavigableMapEvictionQueue.java)
+* [PriorityEvictionQueue.java](src/main/java/com/stoyanr/evictor/queue/PriorityEvictionQueue.java)
 
 ## Performance
 
@@ -196,7 +197,7 @@ In addition, `RegularTaskEvictionScheduler` has the advantage over the other two
 
 ### Overview
 
-For a more comprehensive overview of the library design, see this [class diagram](Evictor/raw/master/design/design.png).
+For a more comprehensive overview of the library design, see this [class diagram](design/design.png).
 
 ### Interfaces
 
@@ -229,9 +230,9 @@ There are three test classes provided with the library:
 Note that `ConcurrentMapWithTimedEvictionTest` sometimes (but very rarely) fails due to unpredictible lower accuracy of single evictions. 
 
 See:
-* [ConcurrentMapWithTimedEvictionTest.java](Evictor/blob/master/src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionTest.java)
-* [ConcurrentMapWithTimedEvictionAccuracyTest.java](Evictor/blob/master/src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionAccuracyTest.java)
-* [ConcurrentMapWithTimedEvictionPerfTest.java](Evictor/blob/master/src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionPerfTest.java)
+* [ConcurrentMapWithTimedEvictionTest.java](src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionTest.java)
+* [ConcurrentMapWithTimedEvictionAccuracyTest.java](src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionAccuracyTest.java)
+* [ConcurrentMapWithTimedEvictionPerfTest.java](src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionPerfTest.java)
 
 ## Build and Development Environment
 
