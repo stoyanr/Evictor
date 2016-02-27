@@ -8,7 +8,7 @@
 
 **Evictor** is a Java library providing an implementation of `java.util.concurrent.ConcurrentMap` that supports timed entry eviction for caching. It is easy to use, thread-safe, very fast, and highly composable. It actually won a [programming contest](http://2012.java2days.com/?page_id=36) in which the submissions were judged for thread safety, performance, and design.
 
-The library is available in Maven Central under the coordinates `com.stoyanr : evictor : 1.0.0`. You can download the latest [binary](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0.jar), [javadoc](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0-javadoc.jar), and [sources](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0-sources.jar), and browse the [Javadoc online](http://stoyanr.github.com/Evictor/evictor/javadoc/). 
+The library is available in Maven Central under the coordinates `com.stoyanr : evictor : 1.0.0`. You can download the latest [binary](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0.jar), [javadoc](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0-javadoc.jar), and [sources](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0-sources.jar), and browse the [Javadoc online](http://stoyanr.github.com/Evictor/javadoc/). 
 
 This work is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 

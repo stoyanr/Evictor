@@ -49,6 +49,7 @@
             <id>stoyanr</id>
             <name>Stoyan Rachev</name>
             <email>stoyanr@gmail.com</email>
+            <url>http://stoyanr.com</url>
         </developer>
         <developer>
             <id>sangupta</id>
@@ -126,6 +127,44 @@
                 <version>3.1.0</version>
             </plugin>
 
+            <!-- Generate the project-javadoc.jar for OSS repository -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Generate the project-sources.jar for OSS repository -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <!-- ~ This workaround prevents Maven from executing the 'generate-sources' phase twice. ~ See http://jira.codehaus.org/browse/MSOURCES-13 ~ and http://blog.peterlynch.ca/2010/05/maven-how-to-prevent-generate-sources.html -->
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>invalid</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>attach-sources-no-fork</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -134,45 +173,6 @@
             <id>release</id>
             <build>
                 <plugins>
-                    <!-- Generate the project-javadoc.jar for OSS repository -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.9.1</version>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <!-- Generate the project-sources.jar for OSS repository -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
-                        <executions>
-                            <!-- ~ This workaround prevents Maven from executing the 'generate-sources' phase twice. ~ See http://jira.codehaus.org/browse/MSOURCES-13 ~ and http://blog.peterlynch.ca/2010/05/maven-how-to-prevent-generate-sources.html -->
-                            <execution>
-                                <id>attach-sources</id>
-                                <phase>invalid</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>attach-sources-no-fork</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-
                     <!-- Sign the Maven artifacts -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>

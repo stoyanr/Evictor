@@ -138,9 +138,6 @@ public abstract class AbstractQueueEvictionScheduler<K, V> implements EvictionSc
      * Performs additional activities upon automated eviction of entries, if
      * needed. Subclasses should override this method if they need to perform
      * such activities.
-     * 
-     * @param e
-     *            the entry for which the eviction should be scheduled
      */
     protected abstract void onEvictEntries();
 
