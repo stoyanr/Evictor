@@ -1,14 +1,14 @@
-# Evictor - A concurrent map with timed element eviction
+# Evictor: Concurrent Map with Timed Entry Eviction
 
-[![Build Status](https://travis-ci.org/sangupta/Evictor.svg?branch=master)](https://travis-ci.org/sangupta/Evictor)
-[![Coverage Status](https://coveralls.io/repos/sangupta/Evictor/badge.png)](https://coveralls.io/r/sangupta/Evictor)
+[![Build Status](https://travis-ci.org/stoyanr/Evictor.svg?branch=master)](https://travis-ci.org/stoyanr/Evictor)
+[![Coverage Status](https://coveralls.io/repos/stoyanr/Evictor/badge.png)](https://coveralls.io/r/stoyanr/Evictor)
 
 
 ## Introduction
 
-**Evictor** is a Java library providing an implementation of `java.util.concurrent.ConcurrentMap` that supports timed entry eviction for caching. It is easy to use, thread-safe, very fast, and highly composable. It actually won a [programming contest](http://www.cayetanogaming.com/javatask) in which the submissions were judged for thread safety, performance, and design.
+**Evictor** is a Java library providing an implementation of `java.util.concurrent.ConcurrentMap` that supports timed entry eviction for caching. It is easy to use, thread-safe, very fast, and highly composable. It actually won a [programming contest](http://2012.java2days.com/?page_id=36) in which the submissions were judged for thread safety, performance, and design.
 
-You can download the latest [binary](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0.jar), [javadoc](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0-javadoc.jar), and [sources](http://stoyanr.github.com/Evictor/evictor/lib/evictor-1.0-sources.jar) and browse the [Javadoc online](http://stoyanr.github.com/Evictor/evictor/javadoc/). 
+The library is available in Maven Central under the coordinates `com.stoyanr : evictor : 1.0.0`. You can download the latest [binary](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0.jar), [javadoc](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0-javadoc.jar), and [sources](https://oss.sonatype.org/content/repositories/releases/com/stoyanr/evictor/1.0.0/evictor-1.0.0-sources.jar), and browse the [Javadoc online](http://stoyanr.github.com/Evictor/evictor/javadoc/). 
 
 This work is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
@@ -32,13 +32,13 @@ There is a single implementation of this interface, `ConcurrentMapWithTimedEvict
 * **Ease of use** - just use the default `ConcurrentHashMapWithTimedEviction` constructor if you don't care about the details.
 * **Extreme composability** - if you do care about the details, you can supply your own `ConcurrentMap` implementation, choose among the 4 available `EvictionScheduler` implementations (or supply your own), and among the 2 available `EvictionQueue` implementations (or supply your own) to create a map which has an even higher performance or is tuned to your needs.
 * **Thread safety** - all classes are safe to use in a concurrent environment
-* **High performance** - higher performance than common alternatives such as [Google Guava](http://code.google.com/p/guava-libraries/) by minimal use of locking and optimized eviction implementations
+* **High performance** - higher performance than common alternatives such as [Google Guava](https://github.com/google/guava) by minimal use of locking and optimized eviction implementations
 * **Detailed documentation** - there are very comprehensive Javadoc, class diagram, and README
 * **Clean code** - if you need to read the code, you are welcome, it does "read like a well-written prose"
 
 ### History
 
-As already mentioned, Evictor was originally created in November 2012 as a submission for a [programming contest](http://www.cayetanogaming.com/javatask) sponsored and organized by [Cayetano Gaming](http://www.cayetanogaming.com/) and announced at the [Java2Days conference](http://2012.java2days.com/?page_id=36). Eventually, Evictor actually *won* this contest, so I deemed it worthy of sharing with the community.
+As already mentioned, Evictor was originally created in November 2012 as a submission for a [programming contest](http://2012.java2days.com/?page_id=36) sponsored and organized by [Cayetano Gaming](http://www.cayetanogaming.com/) and announced at the [Java2Days 2012 conference](http://2012.java2days.com). Eventually, Evictor actually *won* this contest, so I deemed it worthy of sharing with the community.
 
 The contest task requested simply to design a concurrent (thread-safe) map that supports timed entry eviction, having most of the standard map operations and overloaded versions of the `put` and `putIfAbsent` accepting one additional argument, the time-to-live in milliseconds. The criteria to judge the solutions included thread safety, performance, and design.
 
@@ -73,8 +73,8 @@ ConcurrentMapWithTimedEviction<Integer, String> map =
     new ConcurrentHashMapWithTimedEviction<>(100, 0.75f, 8, scheduler);
 ```
 See:
-* [ConcurrentMapWithTimedEviction.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/ConcurrentMapWithTimedEviction.java)
-* [ConcurrentHashMapWithTimedEviction.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/ConcurrentHashMapWithTimedEviction.java)
+* [ConcurrentMapWithTimedEviction.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/ConcurrentMapWithTimedEviction.java)
+* [ConcurrentHashMapWithTimedEviction.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/map/ConcurrentHashMapWithTimedEviction.java)
 
 ### Decorating a Custom ConcurrentMap Implementation
 
@@ -91,7 +91,7 @@ ConcurrentMapWithTimedEviction<Integer, String> map =
 ```
 
 See:
-* [ConcurrentMapWithTimedEvictionDecorator.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/ConcurrentMapWithTimedEvictionDecorator.java)
+* [ConcurrentMapWithTimedEvictionDecorator.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionDecorator.java)
 
 ### Eviction Schedulers
 
@@ -109,11 +109,11 @@ Regarding performance, under heavy contention the last three queue-based schedul
 Note that you can create a single eviction scheduler and use it with multiple maps.
 
 See:
-* [EvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/EvictionScheduler.java)
-* [ExecutorServiceEvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/ExecutorServiceEvictionScheduler.java)
-* [RegularTaskEvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/RegularTaskEvictionScheduler.java)
-* [DelayedTaskEvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/DelayedTaskEvictionScheduler.java)
-* [SingleThreadEvictionScheduler.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/SingleThreadEvictionScheduler.java)
+* [EvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/EvictionScheduler.java)
+* [ExecutorServiceEvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/scheduler/ExecutorServiceEvictionScheduler.java)
+* [RegularTaskEvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/scheduler/RegularTaskEvictionScheduler.java)
+* [DelayedTaskEvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/scheduler/DelayedTaskEvictionScheduler.java)
+* [SingleThreadEvictionScheduler.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/scheduler/SingleThreadEvictionScheduler.java)
 
 ### Eviction Queues
 
@@ -127,9 +127,9 @@ For both queue types, the actual navigable map or queue implementation can be pa
 Regarding performance, `NavigableMapEvictionQueue` with its default map significantly outperforms `PriorityEvictionQueue` with its default queue. Therefore, all three schedulers mentioned above use `NavigableMapEvictionQueue` by default. Normally, you would not need to change this, unless you have a priority queue implementation which can outperform `java.util.concurrent.ConcurrentSkipListMap` in a concurrent environment. In this case, you could implement the `EvictionQueue` interface yourself and pass it to the appropriate scheduler.
 
 See:
-* [EvictionQueue.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/EvictionQueue.java)
-* [NavigableMapEvictionQueue.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/NavigableMapEvictionQueue.java)
-* [PriorityEvictionQueue.java](Evictor/blob/master/evictor/src/com/stoyanr/evictor/PriorityEvictionQueue.java)
+* [EvictionQueue.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/EvictionQueue.java)
+* [NavigableMapEvictionQueue.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/queue/NavigableMapEvictionQueue.java)
+* [PriorityEvictionQueue.java](Evictor/blob/master/src/main/java/com/stoyanr/evictor/queue/PriorityEvictionQueue.java)
 
 ## Performance
 
@@ -200,7 +200,7 @@ For a more comprehensive overview of the library design, see this [class diagram
 
 ### Interfaces
 
-The basic interface was part of the [contest task description](http://www.cayetanogaming.com/javatask). Some things are done a bit differently than requested, for a good reason:
+The basic interface was part of the [contest task description](http://2012.java2days.com/?page_id=36). Some things are done a bit differently than requested, for a good reason:
 
 * The map is parameterized `<K, V>`, which is more useful than a map accepting `Object` as key or value.
 * The main interface `ConcurrentMapWithTimedEviction` extends `java.util.concurrent.ConcurrentMap`, which again is very useful. This however forces the implementation of more methods than requested.
@@ -229,12 +229,11 @@ There are three test classes provided with the library:
 Note that `ConcurrentMapWithTimedEvictionTest` sometimes (but very rarely) fails due to unpredictible lower accuracy of single evictions. 
 
 See:
-* [ConcurrentMapWithTimedEvictionTest.java](Evictor/blob/master/evictor/test/com/stoyanr/evictor/ConcurrentMapWithTimedEvictionTest.java)
-* [ConcurrentMapWithTimedEvictionAccuracyTest.java](Evictor/blob/master/evictor/test/com/stoyanr/evictor/ConcurrentMapWithTimedEvictionAccuracyTest.java)
-* [ConcurrentMapWithTimedEvictionPerfTest.java](Evictor/blob/master/evictor/test/com/stoyanr/evictor/ConcurrentMapWithTimedEvictionPerfTest.java)
+* [ConcurrentMapWithTimedEvictionTest.java](Evictor/blob/master/src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionTest.java)
+* [ConcurrentMapWithTimedEvictionAccuracyTest.java](Evictor/blob/master/src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionAccuracyTest.java)
+* [ConcurrentMapWithTimedEvictionPerfTest.java](Evictor/blob/master/src/test/java/com/stoyanr/evictor/map/ConcurrentMapWithTimedEvictionPerfTest.java)
 
 ## Build and Development Environment
 
-There is a Maven build which you could use to rebuild the library if needed. Just do `mvn clean install`, or `mvn clean install -DskipTests` if you would rather skip the tests. The only external dependencies used in the project are JUnit and Guava, and these are used only for testing. The actual jar built has no external dependencies whatsoever. Besides the binary package, the Maven build produces also source and Javadoc packages.
+There is a Maven build which you could use to rebuild the library if needed. Just do `mvn clean install`, or `mvn clean install -DskipTests` if you would rather skip the tests. The only external dependencies used in the project are JUnit and Guava, and these are used only for testing. The actual jar built has no external dependencies whatsoever. 
 
-There is also an Eclipse project. If you import it in Eclipse, make sure that you have the Maven Eclipse plugin (m2e) installed.
