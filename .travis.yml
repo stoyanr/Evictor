@@ -1,3 +1,4 @@
+# Evictor - A concurrent map with timed element eviction
 language: java
 
 sudo: false
